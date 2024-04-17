@@ -48,3 +48,17 @@ Includes: 	- demographics
 
 •	Reporting and Analytics (view and search) - generate reports on their patients or specific units, allowing them to identify trends and areas for improvement in care delivery. 
 >>(Use PatientID to query records or CaseName to query similar Case)
+
+## Commands To Compile Multiple Source Files Together
+
+Turns File into an object
+gcc -c "C File"
+
+ex. gcc -c doctor.c -> doctor.o
+
+Compile with linked Object
+gcc -o "Name of Executable"  "C File"  "Object"
+
+ex. gcc -o HMS main.c doctor.o admin.o nurse.o doctor.o patient.o -> HMS.exe
+
+When Doing so, Remember to Remove utility.h from the Source Code Before Turning into an Object. (Except the main.c)
