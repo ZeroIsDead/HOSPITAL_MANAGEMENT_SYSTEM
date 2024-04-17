@@ -1,8 +1,4 @@
-#include "./code/utility.h"
-// #include "./code/admin.h"
-// #include "./code/doctor.h"
-// #include "./code/nurse.h"
-// #include "./code/patient.h"
+#include "utility.h"
 
 int main() {
     struct dataContainer data = getData("users");
