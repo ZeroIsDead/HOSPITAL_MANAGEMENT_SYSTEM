@@ -31,6 +31,6 @@ int main()
 
     const char* input[] = {UserID, UserPW, Name, Tags};
 
-    append_file("Users1.txt", 4, input);
+    append_file("Users.txt", 4, input);
 
 }

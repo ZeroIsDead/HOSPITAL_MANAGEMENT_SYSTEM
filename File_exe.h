@@ -12,7 +12,7 @@ FILE* filecheck(const char* filename, const char* mode)
         perror("getcwd() error");
     }
 
-    //strcat the data folder path with filename
+    //strcat the assignment folder path with data folder
     char dataPath[1024];
     sprintf(dataPath, "%s\\data", folderPath);
     
@@ -172,14 +172,28 @@ struct dataContainer getData(const char* file) {
     return container;
 }
 
-void writeData(char file[], char *data[]) {
-
-}
-
-
 void append_file(const char* filename, int numInputs, const char* inputs[]) 
 {
     
+    /* ### This function write a new record(values) to a file ###
+    Parameter: 
+    - filename: name of the file [example : "Users1.txt", "Patient_IDs.txt"]
+    - numInputs: number of inputs, count your number of values stored in your array
+    - inputs: array of inputs
+    
+    Sample of Implementation:
+
+    1. Get your users input as UserID, UserPW, Name, Tags
+
+    2. Put your values into the array using:  
+        
+        const char* input[] = {UserID, UserPW, Name, Tags};
+
+    3. Call the function append_file("filename.txt", number_of_values, name_of_array);
+        
+        append_file("Users.txt", 4, inputs);
+    */
+
     /*Things to add in this Function:
     - Validate numInputs with field numbers
     */
