@@ -1,10 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 FILE* filecheck(const char* filename, const char* mode)
 {
-    FILE* fptr = fopen(filename, mode);
+    //get Folder Path
+    char folderPath[1024];
+    if(getcwd(folderPath, sizeof(folderPath)) == NULL)
+    {
+        perror("getcwd() error");
+    }
+
+    //strcat the data folder path with filename
+    char dataPath[1024];
+    sprintf(dataPath, "%s\\data", folderPath);
+    
+    //strcat the data folder path with filename
+    char filePath[1024];
+    sprintf(filePath, "%s\\%s", dataPath, filename);
+
+    //check the existance of file in the data folder, if file doesnt exist, raise a wrong filename error and prevent creating a new file
+    if(access(filePath, F_OK) == -1)
+    {
+        fprintf(stderr, "Error: Check Your File Name!!\nFilename %s in folder: %s does not exist!\n", filename, dataPath);
+        return NULL;
+    }
+    
+    //Open the File
+    FILE* fptr = fopen(filePath, mode);
+
+    //Open file error check
     if(fptr == NULL)
     {
         printf("Error opening file %s!\n", filename);
@@ -153,18 +179,22 @@ void writeData(char file[], char *data[]) {
 
 void append_file(const char* filename, int numInputs, const char* inputs[]) 
 {
-     /*Things to add in this Function:
-    - semicolon check
-    - Validate numInputs with field numbers
-     */
     
+    /*Things to add in this Function:
+    - Validate numInputs with field numbers
+    */
 
-    char filePath[100];
-    sprintf(filePath, "../data/%s", filename);
+    // Check for semicolon in inputs
+    for (int i = 0; i < numInputs; i++) 
+    {
+        if (strchr(inputs[i], ';') != NULL) 
+        {
+            fprintf(stderr, "Error: semicolon found in inputs[%d]!\n", i);
+            return;
+        }
+    }
 
-    printf("%s\n", filePath);
-
-    FILE* fptr = filecheck(filePath, "a");
+    FILE* fptr = filecheck(filename, "a");
    
     // Calculate the total length needed for the input string
     int total_len = 0;
