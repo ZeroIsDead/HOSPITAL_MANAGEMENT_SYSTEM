@@ -2,56 +2,50 @@
 #include <stdlib.h>
 #include <string.h>
 
-int AskForInt(char prompt[]) {
-    int number;
-    printf(prompt);
-    scanf("%d", &number);
-
-    return number;
-}
-
-// fopen() with attributes as “a” or “a+” or “w” or “w+”
-// Opening an existing file – fopen()
-// Reading from file – fscanf() or fgets()
-// Writing to a file – fprintf() or fputs()
-// Moving to a specific location in a file – fseek(), rewind()
-// Closing a file – fclose()
-
-struct dataContainer {
-    // char** fields;
+struct dataContainer2D {
+    int error;
+    char** fields;
     char*** data;
     int y; //y
     int x; //x
 };
 
-void freeMalloc(struct dataContainer pointer) {
-    for (int i = 0; i < pointer.y; i++)
+struct dataContainer1D {
+    int error;
+    char** fields;
+    char** data;
+    int x;
+};
+
+struct dataContainer1D queryField(char* file, char* field);
+
+void freeMalloc(struct dataContainer2D pointer) {
+    for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
- 
+    }
     free(pointer.data);
+    free(pointer.fields);
 }
 
-int getFileNumOfLines(char file[]) {
+int getFileNumOfLines(char* file) {
     FILE* filePointer;
     int bufferLength = 255;
-    char buffer[bufferLength]; /* not ISO 90 compatible */
+    char buffer[bufferLength];
 
     int count = 0;
 
     filePointer = fopen(file, "r");
 
-    for (char c = getc(filePointer); c != EOF; c = getc(filePointer)){
-        if (c == '\n') {// Increment count if this character is newline
-            count = count + 1;
+    while(fgets(buffer, bufferLength, filePointer)) {
+        count++;
         }
-    }
         
     fclose(filePointer);
 
     return count;
 }
 
-int getFileNumberOfColumns(char file[]) {
+int getFileNumberOfColumns(char* file) {
     FILE* filePointer;
     int bufferLength = 255;
     char buffer[bufferLength]; /* not ISO 90 compatible */
@@ -77,44 +71,66 @@ int getFileNumberOfColumns(char file[]) {
     return count;
 }
 
-struct dataContainer getData(const char* file) {
+// DATA READ FUNCTIONS
+
+// returns a struct that holds the field and data of the corresponding file
+struct dataContainer2D getData(const char* file) {
     FILE* filePointer;
     int bufferLength = 255;
     char buffer[bufferLength]; 
 
     const char* separator = ";";
 
-
     // Concatenate FilePath
     const char* folder = "./data/";
     const char* extension = ".txt";
 
     char* filePath;
-    filePath = malloc(strlen(extension)+strlen(folder)+strlen(file)+1);
+    filePath = malloc(strlen(extension) + strlen(folder) + strlen(file) + 1);
     strcpy(filePath, folder); 
     strcat(filePath, file); 
     strcat(filePath, extension); 
 
+    filePointer = fopen(filePath, "r");
+
+    if (filePointer == NULL) {
+        printf("FAIL FUCK");
+        EXIT_FAILURE;
+    }
+
+    const int fieldColumn = 1;
+
     // Get Dimensions of the Array
-    int fileLength = getFileNumOfLines(filePath); // y
+    int fileLength = getFileNumOfLines(filePath) - fieldColumn; // y
     int columnLength = getFileNumberOfColumns(filePath); // x
 
-
+    // Create Array of Pointers
     char*** data = (char***) malloc (fileLength * sizeof(char**)); 
 
-    for (int i; i < fileLength; i++) {
+    // Place Pointers of Arrays into the Array to Make a 2D array
+    for (int i=0; i < fileLength; i++) {
         data[i] = (char**) malloc (columnLength * sizeof(char*));
     }
 
-    filePointer = fopen(filePath, "r");
-
     free(filePath); // free memory allocation
 
+    // get Fields
+    char** fields = (char**) malloc (columnLength * sizeof(char*));
+
+    fgets(buffer, bufferLength, filePointer);
+    buffer[strcspn(buffer, "\n")] = 0;
+    char* token = strtok(buffer, separator);
+    int j=0;
+
+    while (token != NULL) {
+        fields[j++] = strdup(token);
+        token = strtok(NULL, separator);
+    }
+
+    // Get Data
     int i=0;
 
-
-
-    while(fgets(buffer, bufferLength, filePointer)) {
+    while(fgets(buffer, bufferLength, filePointer)) { // Reads line by line until end of file
         buffer[strcspn(buffer, "\n")] = 0;
         char* token = strtok(buffer, separator);
         int j=0;
@@ -123,12 +139,15 @@ struct dataContainer getData(const char* file) {
             data[i][j++] = strdup(token);
             token = strtok(NULL, separator);
         }
+
         i++;
     }
     fclose(filePointer);
 
-    struct dataContainer container;
+    struct dataContainer2D container;
 
+    container.error = 0;
+    container.fields = fields;
     container.data = data;
     container.x = columnLength;
     container.y = fileLength;
@@ -136,34 +155,115 @@ struct dataContainer getData(const char* file) {
     return container;
 }
 
-void writeData(char file[], char *data[]) {
+// returns the record with the corresponding key/ID
+struct dataContainer1D queryKey(char* file, char* key) {
+    struct dataContainer2D data = getData(file);
+
+    char* IDField = data.fields[0];
+
+    struct dataContainer1D IDs = queryField(file, IDField);
+
+
+    struct dataContainer1D returnedValue;
+    for (int i=0; i<data.y; i++) {
+        if (!strncmp(IDs.data[i], key, 255)) {
+
+            returnedValue.data = data.data[i];
+            returnedValue.fields = data.fields;
+            returnedValue.x = data.x;
+
+            return returnedValue;
+        }
+    }
+
+    return returnedValue;
+}
+
+// Returns an array of values in the field column
+struct dataContainer1D queryField(char* file, char* field) {
+    struct dataContainer2D data = getData(file);
+
+    int fieldColumn = -1;
+
+    for (int i=0; i<data.x; i++) {
+        if (!strncmp(data.fields[i], field, 255)) {
+            fieldColumn = i;
+            break;
+        }
+    }
+
+    struct dataContainer1D returnedValue;
+    returnedValue.error = 0;
+
+    // Fail to find
+    if (fieldColumn == -1) {
+        freeMalloc(data);
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    // Get all Data In the Specified Field Column
+    char** fieldData = (char**) malloc (data.y * sizeof(char*));
+
+    for (int i=0; i<data.y; i++) {
+        fieldData[i] = strdup(data.data[i][fieldColumn]);
+    }
+
+    returnedValue.data = fieldData;
+    returnedValue.x = data.y;
+
+    freeMalloc(data);
+
+    return returnedValue;
+}
+
+// Return the record with  the specified key in the field column
+struct dataContainer1D queryFieldStrict(char* file, char* field, char* key) { 
+    struct dataContainer1D fieldData = queryField(file, field);
+
+    struct dataContainer1D returnedValue;
+    returnedValue.error = 0;
+
+    if (fieldData.error) { // Fail to Find
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    struct dataContainer2D data = getData(file);
+
+
+    // Get the Data Record With the 
+    for (int i=0; i<data.y; i++) {
+        if (!strncmp(fieldData.data[i], key, 255)) { // Compare Strings
+            returnedValue.fields = data.fields;
+            returnedValue.data = data.data[i];
+            returnedValue.x = data.x;
+
+            return returnedValue;
+        }
+    }
+
+    freeMalloc(data);
+    free(fieldData.data);
+
+    return returnedValue;
+}
+
+// DATA WRITE FUNCTIONS
+
+int writeData(char* file, char** data) {
 
 }
 
-void appendData(char file[], char *data[]) {
+int appendData(char* file, char** data) {
 
 }
 
-char **queryKey(char file[], char key[]) {
+int updateData(char* file, char* key, char** data) {
 
 }
 
-void updateData(char file[], char key[], char *data[]) {
+int deleteKey(char* file, char* key) {
 
 }
 
-void deleteKey(char file[], char key[]) {
-
-}
-
-char **queryField(char file[], char field[]) {
-
-}
-
-char **queryFieldStrict(char file[], char field[], char data[]) {
-
-}
-
-char **getFieldName(char file[]) {
-
-}
