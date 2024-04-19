@@ -1,11 +1,11 @@
 {
     "files.associations": {
-        "patient.h": "c",
-        "nurse.h": "c",
-        "doctor.h": "c",
-        "admin.h": "c",
+        "Patient.h": "c",
+        "Nurse.h": "c",
+        "Doctor.h": "c",
+        "Admin.h": "c",
         "File_exe.h": "c",
-        "random": "c"
+        "Random": "c"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }
