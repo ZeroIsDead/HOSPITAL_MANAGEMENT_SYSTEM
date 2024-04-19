@@ -150,14 +150,21 @@ void writeData(char file[], char *data[]) {
 
 }
 
+
 void append_file(const char* filename, int numInputs, const char* inputs[]) 
 {
      /*Things to add in this Function:
     - semicolon check
     - Validate numInputs with field numbers
      */
+    
 
-    FILE* fptr = filecheck(filename, "a");
+    char filePath[100];
+    sprintf(filePath, "../data/%s", filename);
+
+    printf("%s\n", filePath);
+
+    FILE* fptr = filecheck(filePath, "a");
    
     // Calculate the total length needed for the input string
     int total_len = 0;
