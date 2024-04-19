@@ -1,6 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+
+FILE* filecheck(const char* filename, const char* mode)
+{
+    //get Folder Path
+    char folderPath[1024];
+    if(getcwd(folderPath, sizeof(folderPath)) == NULL)
+    {
+        perror("getcwd() error");
+    }
+
+    //strcat the assignment folder path with data folder
+    char dataPath[1024];
+    sprintf(dataPath, "%s\\data", folderPath);
+    
+    //strcat the data folder path with filename
+    char filePath[1024];
+    sprintf(filePath, "%s\\%s", dataPath, filename);
+
+    //check the existance of file in the data folder, if file doesnt exist, raise a wrong filename error and prevent creating a new file
+    if(access(filePath, F_OK) == -1)
+    {
+        fprintf(stderr, "Error: Check Your File Name!!\nFilename %s in folder: %s does not exist!\n", filename, dataPath);
+        return NULL;
+    }
+    
+    //Open the File
+    FILE* fptr = fopen(filePath, mode);
+
+    //Open file error check
+    if(fptr == NULL)
+    {
+        printf("Error opening file %s!\n", filename);
+    }
+    return fptr;
+}
 
 struct dataContainer2D {
     int error;
@@ -255,8 +291,77 @@ int writeData(char* file, char** data) {
 
 }
 
-int appendData(char* file, char** data) {
+void append_file(const char* filename, int numInputs, const char* inputs[]) 
+{
+    
+    /* ### This function write a new record(values) to a file ###
+    Parameter: 
+    - filename: name of the file [example : "Users1.txt", "Patient_IDs.txt"]
+    - numInputs: number of inputs, count your number of values stored in your array
+    - inputs: array of inputs
+    
+    Sample of Implementation:
 
+    1. Get your users input as UserID, UserPW, Name, Tags
+
+    2. Put your values into the array using:  
+        
+        const char* input[] = {UserID, UserPW, Name, Tags};
+
+    3. Call the function append_file("filename.txt", number_of_values, name_of_array);
+        
+        append_file("Users.txt", 4, inputs);
+    */
+
+    /*Things to add in this Function:
+    - Validate numInputs with field numbers
+    */
+
+    // Check for semicolon in inputs
+    for (int i = 0; i < numInputs; i++) 
+    {
+        if (strchr(inputs[i], ';') != NULL) 
+        {
+            fprintf(stderr, "Error: semicolon found in inputs[%d]!\n", i);
+            return;
+        }
+    }
+
+    FILE* fptr = filecheck(filename, "a");
+   
+    // Calculate the total length needed for the input string
+    int total_len = 0;
+    for (int i = 0; i < numInputs; ++i) 
+    {
+        total_len += snprintf(NULL, 0, "%s;", inputs[i]);
+    }
+    total_len += 1; // Add 1 for the newline character
+
+    char* line = malloc(total_len); // Allocate memory for the line
+    
+    // Check for null pointer
+    if (line == NULL) 
+    { 
+        printf("Error allocating memory!\n");
+        fclose(fptr);
+        return;
+    }
+
+    // Construct the input string
+    line[0] = '\0';
+    for (int i = 0; i < numInputs; ++i) 
+    {
+        strcat(line, inputs[i]); 
+        strcat(line, ";");
+    }
+    strcat(line, "\n"); // Add a newline character at the end
+
+    // Write the input string to the file
+    fputs(line, fptr);
+
+    // Cleanup
+    free(line);
+    fclose(fptr);
 }
 
 int updateData(char* file, char* key, char** data) {
@@ -266,4 +371,3 @@ int updateData(char* file, char* key, char** data) {
 int deleteKey(char* file, char* key) {
 
 }
-
