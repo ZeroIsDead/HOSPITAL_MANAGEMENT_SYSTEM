@@ -39,22 +39,23 @@ FILE* filecheck(const char* filename, const char* mode)
 }
 
 struct dataContainer2D {
-    int error;
-    char** fields;
-    char*** data;
-    int y; //y
-    int x; //x
+    int error; // 1 - error | 0 - fine
+    char** fields; // an array containing the fields
+    char*** data; // a 2D array containing each line of data
+    int y; //y - number of lines / arrays in the 2D array
+    int x; //x - number of columns / elements in each array
 };
 
 struct dataContainer1D {
-    int error;
-    char** fields;
-    char** data;
-    int x;
+    int error; // 1 - error | 0 - fine
+    char** fields; // an array containing the fields
+    char** data; // an array containing one line or one column of data
+    int x; // x - number of columns / elements in the array
 };
 
 struct dataContainer1D queryField(char* file, char* field);
 
+// Garbage collection
 void freeMalloc(struct dataContainer2D pointer) {
     for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
@@ -63,6 +64,7 @@ void freeMalloc(struct dataContainer2D pointer) {
     free(pointer.fields);
 }
 
+// Get The Number of Lines in a file (Number of Users + (1 which is The Fields))
 int getFileNumOfLines(char* file) {
     FILE* filePointer;
     int bufferLength = 255;
@@ -81,6 +83,7 @@ int getFileNumOfLines(char* file) {
     return count;
 }
 
+// Get the Number of Columns in a file (Number of fields - UserID,UserPW,Name,Tag)
 int getFileNumberOfColumns(char* file) {
     FILE* filePointer;
     int bufferLength = 255;
@@ -253,12 +256,13 @@ struct dataContainer1D queryField(char* file, char* field) {
     return returnedValue;
 }
 
-// Return the record with  the specified key in the field column
-struct dataContainer1D queryFieldStrict(char* file, char* field, char* key) { 
+// Return the record with the specified key in the field column
+struct dataContainer2D queryFieldStrict(char* file, char* field, char* key) { 
     struct dataContainer1D fieldData = queryField(file, field);
 
-    struct dataContainer1D returnedValue;
+    struct dataContainer2D returnedValue;
     returnedValue.error = 0;
+
 
     if (fieldData.error) { // Fail to Find
         returnedValue.error = 1;
@@ -266,18 +270,32 @@ struct dataContainer1D queryFieldStrict(char* file, char* field, char* key) {
     }
 
     struct dataContainer2D data = getData(file);
+    returnedValue.fields = data.fields;
+    returnedValue.x = data.x;
 
+    
+    char** buffer[255];
+    int count = 0;
 
-    // Get the Data Record With the 
+    // Get the Data Records With the Key
     for (int i=0; i<data.y; i++) {
         if (!strncmp(fieldData.data[i], key, 255)) { // Compare Strings
-            returnedValue.fields = data.fields;
-            returnedValue.data = data.data[i];
-            returnedValue.x = data.x;
-
-            return returnedValue;
+            buffer[count] = data.data[i];
+            count++;
         }
     }
+
+    char*** returnedData = (char***) malloc (count * sizeof(char**));
+
+    for (int i=0; i<count; i++) {
+        returnedData[i] = (char**) malloc (data.x * sizeof(char*));
+        for (int j=0; j<data.x; j++) {
+            returnedData[i][j] = strdup(buffer[i][j]);
+        }
+    }
+
+    returnedValue.data = returnedData;
+    returnedValue.y = count;
 
     freeMalloc(data);
     free(fieldData.data);
@@ -291,8 +309,7 @@ int writeData(char* file, char** data) {
 
 }
 
-void append_file(const char* filename, int numInputs, const char* inputs[]) 
-{
+int append_file(const char* filename, int numInputs, const char* inputs[]) {
     
     /* ### This function write a new record(values) to a file ###
     Parameter: 
@@ -323,7 +340,7 @@ void append_file(const char* filename, int numInputs, const char* inputs[])
         if (strchr(inputs[i], ';') != NULL) 
         {
             fprintf(stderr, "Error: semicolon found in inputs[%d]!\n", i);
-            return;
+            return 1;
         }
     }
 
@@ -344,7 +361,7 @@ void append_file(const char* filename, int numInputs, const char* inputs[])
     { 
         printf("Error allocating memory!\n");
         fclose(fptr);
-        return;
+        return 1;
     }
 
     // Construct the input string
@@ -362,6 +379,7 @@ void append_file(const char* filename, int numInputs, const char* inputs[])
     // Cleanup
     free(line);
     fclose(fptr);
+    return 0;
 }
 
 int updateData(char* file, char* key, char** data) {
