@@ -319,11 +319,24 @@ void append_file(const char* filename, int numInputs, const char* inputs[])
     /*Things to add in this Function:
     - Validate numInputs with field numbers
     */
+    
+    // Make a copy of the input array to avoid modifying the original data
+    char* inputs_copy[numInputs];
+    for (int i = 0; i < numInputs; ++i) 
+    {
+        inputs_copy[i] = strdup(inputs[i]);
+    }
+
+    // Remove newline characters from each input
+    for (int i = 0; i < numInputs; ++i) 
+    {
+        inputs_copy[i][strcspn(inputs_copy[i], "\n")] = '\0';
+    }
 
     // Check for semicolon in inputs
     for (int i = 0; i < numInputs; i++) 
     {
-        if (strchr(inputs[i], ';') != NULL) 
+        if (strchr(inputs_copy[i], ';') != NULL) 
         {
             fprintf(stderr, "Error: semicolon found in inputs[%d]!\n", i);
             return;
@@ -336,7 +349,7 @@ void append_file(const char* filename, int numInputs, const char* inputs[])
     int total_len = 0;
     for (int i = 0; i < numInputs; ++i) 
     {
-        total_len += snprintf(NULL, 0, "%s;", inputs[i]);
+        total_len += snprintf(NULL, 0, "%s;", inputs_copy[i]);
     }
     total_len += 1; // Add 1 for the newline character
 
@@ -354,7 +367,7 @@ void append_file(const char* filename, int numInputs, const char* inputs[])
     line[0] = '\0';
     for (int i = 0; i < numInputs; ++i) 
     {
-        strcat(line, inputs[i]); 
+        strcat(line, inputs_copy[i]); 
         strcat(line, ";");
     }
     strcat(line, "\n"); // Add a newline character at the end
