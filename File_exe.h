@@ -55,7 +55,11 @@ struct dataContainer1D {
 
 struct dataContainer1D queryField(char* file, char* field);
 
-// Garbage collection
+/* This function frees the memory allocated for the dataContainer2D struct.
+ * It iterates over each line of data, frees the memory allocated for each element in that line,
+ * and then frees the memory allocated for the line itself. Finally, it frees the memory
+ * allocated for the fields and the data array.
+ */
 void freeMalloc(struct dataContainer2D pointer) {
     for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
@@ -309,9 +313,7 @@ int writeData(char* file, char** data) {
 
 }
 
-int append_file(const char* filename, int numInputs, const char* inputs[]) {
-    
-    /* This function write a new record(values) to a file.
+/* This function write a new record(values) to a file.
     *Parameter: 
     * - filename: name of the file [example : "Users1.txt", "Patient_IDs.txt"]
     * - numInputs: number of inputs, count your number of values stored in your array
@@ -323,13 +325,14 @@ int append_file(const char* filename, int numInputs, const char* inputs[]) {
 
     *2. Put your values into the array using:  
         
-        const char* input[] = {UserID, UserPW, Name, Tags};
+    * - const char* input[] = {UserID, UserPW, Name, Tags};
 
     *3. Call the function append_file("filename.txt", number_of_values, name_of_array);
         
-    *    append_file("Users.txt", 4, inputs);
-    */
-
+    * - append_file("Users.txt", 4, inputs);
+*/
+int append_file(const char* filename, int numInputs, const char* inputs[]) {
+    
     /*Things to add in this Function:
     - Validate numInputs with field numbers
     */
