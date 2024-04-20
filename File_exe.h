@@ -38,7 +38,8 @@ FILE* filecheck(const char* filename, const char* mode)
     return fptr;
 }
 
-struct dataContainer2D {
+struct dataContainer2D 
+{
     int error;
     char** fields;
     char*** data;
@@ -46,7 +47,8 @@ struct dataContainer2D {
     int x; //x
 };
 
-struct dataContainer1D {
+struct dataContainer1D 
+{
     int error;
     char** fields;
     char** data;
@@ -55,7 +57,8 @@ struct dataContainer1D {
 
 struct dataContainer1D queryField(char* file, char* field);
 
-void freeMalloc(struct dataContainer2D pointer) {
+void freeMalloc(struct dataContainer2D pointer) 
+{
     for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
     }
