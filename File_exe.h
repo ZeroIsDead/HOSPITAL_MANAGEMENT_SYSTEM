@@ -383,9 +383,9 @@ int append_file(const char* filename, int numInputs, const char* inputs[]) {
 }
 
 int updateData(char* file, char* key, char** data) {
-
+// Sandaris will handle
 }
 
 int deleteKey(char* file, char* key) {
-
+// working on it
 }
