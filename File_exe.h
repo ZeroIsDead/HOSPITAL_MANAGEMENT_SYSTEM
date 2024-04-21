@@ -281,7 +281,6 @@ struct dataContainer1D queryField(char* filename, char* field)
         }
     }
 
-    printf("%d\n", fieldColumn);
 
     // Fail to find
     if (fieldColumn == -1) 
