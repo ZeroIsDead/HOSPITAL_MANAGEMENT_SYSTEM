@@ -46,7 +46,8 @@ FILE* filecheck(const char* filename, const char* mode)
     return filePointer;
 }
 
-struct dataContainer2D {
+struct dataContainer2D 
+{
     int error; // 1 - error | 0 - fine
     char** fields; // an array containing the fields
     char*** data; // a 2D array containing each line of data
@@ -54,7 +55,8 @@ struct dataContainer2D {
     int x; //x - number of columns / elements in each array
 };
 
-struct dataContainer1D {
+struct dataContainer1D 
+{
     int error; // 1 - error | 0 - fine
     char** fields; // an array containing the fields
     char** data; // an array containing one line or one column of data
@@ -78,6 +80,11 @@ void freeMalloc(struct dataContainer2D pointer)
 }
 
 // Get The Number of Lines in a file (Number of Users + (1 which is The Fields))
+/*
+ * This function takes a file path as input and returns the number of lines in that file.
+ * The function opens the file in read mode, reads each line until the end of the file is reached,
+ * and increments a counter for each line. Finally, it closes the file and returns the counter.
+ */
 int getFileNumOfLines(const char* filename) 
 {
     FILE* filePointer = filecheck(filename, "r");
@@ -98,6 +105,11 @@ int getFileNumOfLines(const char* filename)
 }
 
 // Get the Number of Columns in a file (Number of fields - UserID,UserPW,Name,Tag)
+/*
+ * This function takes a file path as input and returns the number of columns in that file.
+ * The function opens the file in read mode, reads the first line, and counts the number of
+ * separators in that line. Finally, it closes the file and returns the number of columns.
+ */
 int getFileNumberOfColumns(const char* filename) 
 {   
     FILE* filePointer = filecheck(filename, "r");
@@ -110,14 +122,18 @@ int getFileNumberOfColumns(const char* filename)
     int count = 0;
 
     fgets(buffer, bufferLength, filePointer);
+
+    // Tokenize the line based on the separators
     char* token = strtok(buffer, separator);
 
-    // Keep printing tokens while one of the
-    // delimiters present in str[].
+    // Keep counting the number of separators until there are no more
     while (token != NULL) 
     {
-        token = strtok(NULL, separator);
+        // Increment the column counter
         count++;
+
+        // Get the next token
+        token = strtok(NULL, separator);
     }
 
     fclose(filePointer);
@@ -198,7 +214,10 @@ struct dataContainer2D getData(const char* filename)
     return container;
 }
 
-// returns the record with the corresponding key/ID
+/*This function queries a file for a record for only unique key/ID.
+ * It takes a filename and a key as input, and returns a struct
+ * that contains the corresponding data and fields of the record.
+ */
 struct dataContainer1D queryKey(char* filename, char* key) 
 {
     struct dataContainer2D data = getData(filename);
@@ -433,7 +452,7 @@ int append_file(const char* filename, int numInputs, const char* inputs[]) {
     return 0;
 }
 
-int updateData(char* file, char* key, char** data) {
+int updateData(char* filename, char* key, char** data) {
 // Sandaris will handle
 }
 
