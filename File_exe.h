@@ -68,7 +68,8 @@ struct dataContainer1D queryField(char* file, char* field);
  * and then frees the memory allocated for the line itself. Finally, it frees the memory
  * allocated for the fields and the data array.
  */
-void freeMalloc(struct dataContainer2D pointer) {
+void freeMalloc(struct dataContainer2D pointer) 
+{
     for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
     }
