@@ -78,7 +78,7 @@ void freeMalloc(struct dataContainer2D pointer)
 }
 
 // Get The Number of Lines in a file (Number of Users + (1 which is The Fields))
-int getFileNumOfLines(char* filename) 
+int getFileNumOfLines(const char* filename) 
 {
     FILE* filePointer = filecheck(filename, "r");
 
@@ -98,7 +98,7 @@ int getFileNumOfLines(char* filename)
 }
 
 // Get the Number of Columns in a file (Number of fields - UserID,UserPW,Name,Tag)
-int getFileNumberOfColumns(char* filename) 
+int getFileNumberOfColumns(const char* filename) 
 {   
     FILE* filePointer = filecheck(filename, "r");
 
@@ -122,7 +122,9 @@ int getFileNumberOfColumns(char* filename)
 
     fclose(filePointer);
 
-    return count;
+    const int expectedSeparator = 1;
+
+    return count - expectedSeparator;
 }
 
 // DATA READ FUNCTIONS
@@ -201,12 +203,25 @@ struct dataContainer1D queryKey(char* filename, char* key)
 {
     struct dataContainer2D data = getData(filename);
 
+    struct dataContainer1D returnedValue;
+    returnedValue.error = 0;
+
+    if (data.error) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
     char* IDField = data.fields[0];
 
     struct dataContainer1D IDs = queryField(filename, IDField);
 
+    if (IDs.error) {
+        returnedValue.error = 1;
+        freeMalloc(data);
+        return returnedValue;
+    }
 
-    struct dataContainer1D returnedValue;
+
     for (int i=0; i<data.y; i++) 
     {
         if (!strncmp(IDs.data[i], key, 255)) 
@@ -228,6 +243,14 @@ struct dataContainer1D queryField(char* filename, char* field)
 {
     struct dataContainer2D data = getData(filename);
 
+    struct dataContainer1D returnedValue;
+    returnedValue.error = 0;
+
+    if (data.error) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
     int fieldColumn = -1;
 
     for (int i=0; i<data.x; i++) 
@@ -239,8 +262,7 @@ struct dataContainer1D queryField(char* filename, char* field)
         }
     }
 
-    struct dataContainer1D returnedValue;
-    returnedValue.error = 0;
+    printf("%d\n", fieldColumn);
 
     // Fail to find
     if (fieldColumn == -1) 
