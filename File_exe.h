@@ -321,7 +321,7 @@ struct dataContainer2D queryFieldStrict(char* filename, char* field, char* key)
 
 // DATA WRITE FUNCTIONS
 
-int writeData(char* file, char** data) 
+int writeData(char* filename, char** data) 
 {
 
 }
