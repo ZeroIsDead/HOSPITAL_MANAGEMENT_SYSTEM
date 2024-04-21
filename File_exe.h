@@ -266,9 +266,9 @@ struct dataContainer1D queryField(char* filename, char* field)
 }
 
 // Return the record with the specified key in the field column
-struct dataContainer2D queryFieldStrict(char* file, char* field, char* key) 
+struct dataContainer2D queryFieldStrict(char* filename, char* field, char* key) 
 { 
-    struct dataContainer1D fieldData = queryField(file, field);
+    struct dataContainer1D fieldData = queryField(filename, field);
 
     struct dataContainer2D returnedValue;
     returnedValue.error = 0;
@@ -280,7 +280,7 @@ struct dataContainer2D queryFieldStrict(char* file, char* field, char* key)
         return returnedValue;
     }
 
-    struct dataContainer2D data = getData(file);
+    struct dataContainer2D data = getData(filename);
     returnedValue.fields = data.fields;
     returnedValue.x = data.x;
 
