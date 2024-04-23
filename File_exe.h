@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <math.h>
 
 /*This function open the file for you, check the existance of file in the data folder, if file doesnt exist, raise a wrong filename error and prevent creating a new file, lastly return a file pointer of the file you opened.
 * 
@@ -64,6 +65,118 @@ struct dataContainer1D
 };
 
 struct dataContainer1D queryField(char* file, char* field);
+
+void clearTerminal() {
+    printf("\e[1;1H\e[2J");
+}
+
+int displayMenu(char* header, char** options, int noOptions) {
+    // get max sizeof option string
+    int maxLength = strlen(header);
+    int stringLengths[noOptions];
+    char* modifiedOptions[noOptions];
+
+    for (int i=0; i<noOptions; i++) {
+        // format the strings
+        char buffer[255];
+
+        sprintf(buffer, "%d. %s", i+1, options[i]);
+
+        modifiedOptions[i] = strdup(buffer);
+
+        // get length
+        int currentLength = strlen(modifiedOptions[i]);
+        stringLengths[i] = currentLength;
+    
+        if (currentLength > maxLength) {
+            maxLength = currentLength;
+        }
+    }
+
+    const int horizontalpadding = 15;
+    int borderLength = maxLength + 2 * horizontalpadding;
+
+    // Top  Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // Header
+    const int verticalPadding = 1;
+
+    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
+    
+    const int borderCount = 2;
+    const char character = '|';
+    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
+
+    printf("%c", character);
+
+    for (int i=0; i<headerPadding; i++) {
+        printf(" ");
+    }
+
+    printf(header);
+
+    for (int i=0; i<rightPadding; i++) {
+        printf(" ");
+    }
+
+    printf("%c", character);
+
+    printf("\n");
+
+    // Middle Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    const int leftPadding = 5;
+
+    // Options
+    for (int i=0; i<noOptions; i++) {
+        const char* text = modifiedOptions[i];
+        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
+
+        printf("%c", character);
+
+        for (int i=0; i<leftPadding; i++) {
+            printf(" ");
+        }
+
+        printf(text);
+
+        for (int i=0; i<rightPadding; i++) {
+            printf(" ");
+        }
+
+        printf("%c", character);
+
+        printf("\n");
+    }
+
+    // Bottom Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // Get Input
+    int input;
+    printf("Enter your Input: ");
+    scanf("%d", &input);
+
+    // Return Valid Input
+    if (0 < input && input < noOptions) {
+        return input;
+    }
+
+    // Repeat Menu until Valid Input
+    clearTerminal();
+    displayMenu(header, options, noOptions);
+}
 
 /* This function frees the memory allocated for the dataContainer2D struct.
  * It iterates over each line of data, frees the memory allocated for each element in that line,
@@ -232,18 +345,38 @@ struct dataContainer1D queryKey(char* filename, char* key)
 
     char* IDField = data.fields[0];
 
-    struct dataContainer1D IDs = queryField(filename, IDField);
+// Get Field Index
+    int fieldColumn = -1;
 
-    if (IDs.error) {
-        returnedValue.error = 1;
+    for (int i=0; i<data.x; i++) 
+    {
+        if (!strncmp(data.fields[i], IDField, 255))
+        {
+            fieldColumn = i;
+            break;
+        }
+    }
+
+    // Fail to find
+    if (fieldColumn == -1) 
+    {
         freeMalloc(data);
+        returnedValue.error = 1;
         return returnedValue;
+    }
+
+    // Get all Data In the Specified Field Column
+    char** IDs = (char**) malloc (data.y * sizeof(char*));
+
+    for (int i=0; i<data.y; i++) 
+    {
+        IDs[i] = strdup(data.data[i][fieldColumn]);
     }
 
 
     for (int i=0; i<data.y; i++) 
     {
-        if (!strncmp(IDs.data[i], key, 255)) 
+        if (!strncmp(IDs[i], key, 255)) 
         {
 
             returnedValue.data = data.data[i];
@@ -260,6 +393,7 @@ struct dataContainer1D queryKey(char* filename, char* key)
 // Returns an array of values in the field column
 struct dataContainer1D queryField(char* filename, char* field) 
 {
+
     struct dataContainer2D data = getData(filename);
 
     struct dataContainer1D returnedValue;
@@ -280,8 +414,6 @@ struct dataContainer1D queryField(char* filename, char* field)
             break;
         }
     }
-
-    printf("%d\n", fieldColumn);
 
     // Fail to find
     if (fieldColumn == -1) 
@@ -310,30 +442,48 @@ struct dataContainer1D queryField(char* filename, char* field)
 // Return the record with the specified key in the field column
 struct dataContainer2D queryFieldStrict(char* filename, char* field, char* key) 
 { 
-    struct dataContainer1D fieldData = queryField(filename, field);
-
     struct dataContainer2D returnedValue;
     returnedValue.error = 0;
-
-
-    if (fieldData.error) 
-    { // Fail to Find
-        returnedValue.error = 1;
-        return returnedValue;
-    }
 
     struct dataContainer2D data = getData(filename);
     returnedValue.fields = data.fields;
     returnedValue.x = data.x;
 
-    
-    char** buffer[255];
+    // Get Field Index
+    int fieldColumn = -1;
+
+    for (int i=0; i<data.x; i++) 
+    {
+        if (!strncmp(data.fields[i], field, 255))
+        {
+            fieldColumn = i;
+            break;
+        }
+    }
+
+    // Fail to find
+    if (fieldColumn == -1) 
+    {
+        freeMalloc(data);
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    // Get all Data In the Specified Field Column
+    char** fieldData = (char**) malloc (data.y * sizeof(char*));
+
+    for (int i=0; i<data.y; i++) 
+    {
+        fieldData[i] = strdup(data.data[i][fieldColumn]);
+    }
+
+    char** buffer[data.y];
     int count = 0;
 
     // Get the Data Records With the Key
     for (int i=0; i<data.y; i++) 
     {
-        if (!strncmp(fieldData.data[i], key, 255)) 
+        if (!strncmp(fieldData[i], key, 255)) 
         { // Compare Strings
             buffer[count] = data.data[i];
             count++;
@@ -355,7 +505,7 @@ struct dataContainer2D queryFieldStrict(char* filename, char* field, char* key)
     returnedValue.y = count;
 
     freeMalloc(data);
-    free(fieldData.data);
+    free(fieldData);
 
     return returnedValue;
 }
