@@ -415,6 +415,7 @@ struct dataContainer1D queryField(char* filename, char* field)
         }
     }
 
+
     // Fail to find
     if (fieldColumn == -1) 
     {
