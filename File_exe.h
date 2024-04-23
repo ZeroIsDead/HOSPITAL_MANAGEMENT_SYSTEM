@@ -192,70 +192,6 @@ void freeMalloc(struct dataContainer2D pointer)
     free(pointer.fields);
 }
 
-// Get The Number of Lines in a file (Number of Users + (1 which is The Fields))
-/*
- * This function takes a file path as input and returns the number of lines in that file.
- * The function opens the file in read mode, reads each line until the end of the file is reached,
- * and increments a counter for each line. Finally, it closes the file and returns the counter.
- */
-int getFileNumOfLines(const char* filename) 
-{
-    FILE* filePointer = filecheck(filename, "r");
-
-    int bufferLength = 255;
-    char buffer[bufferLength];
-
-    int count = 0;
-
-    while(fgets(buffer, bufferLength, filePointer)) 
-    {
-        count++;
-    }
-        
-    fclose(filePointer);
-
-    return count;
-}
-
-// Get the Number of Columns in a file (Number of fields - UserID,UserPW,Name,Tag)
-/*
- * This function takes a file path as input and returns the number of columns in that file.
- * The function opens the file in read mode, reads the first line, and counts the number of
- * separators in that line. Finally, it closes the file and returns the number of columns.
- */
-int getFileNumberOfColumns(const char* filename) 
-{   
-    FILE* filePointer = filecheck(filename, "r");
-
-    int bufferLength = 255;
-    char buffer[bufferLength]; /* not ISO 90 compatible */
-
-    const char* separator = ";";
-
-    int count = 0;
-
-    fgets(buffer, bufferLength, filePointer);
-
-    // Tokenize the line based on the separators
-    char* token = strtok(buffer, separator);
-
-    // Keep counting the number of separators until there are no more
-    while (token != NULL) 
-    {
-        // Increment the column counter
-        count++;
-
-        // Get the next token
-        token = strtok(NULL, separator);
-    }
-
-    fclose(filePointer);
-
-    const int expectedSeparator = 1;
-
-    return count - expectedSeparator;
-}
-
 // DATA READ FUNCTIONS
 
 // returns a struct that holds the field and data of the corresponding file
@@ -271,8 +207,34 @@ struct dataContainer2D getData(const char* filename)
     const int fieldColumn = 1;
 
     // Get Dimensions of the Array
-    int fileLength = getFileNumOfLines(filename) - fieldColumn; // y
-    int columnLength = getFileNumberOfColumns(filename); // x
+    int fileLength = -1; // y
+    int columnLength = -1; // x
+
+    // get File Length - Y
+    while(fgets(buffer, bufferLength, filePointer)) 
+    {
+        fileLength++;
+    }
+
+    rewind(filePointer);
+
+    // get Column Length - X
+    fgets(buffer, bufferLength, filePointer);
+
+    // Tokenize the line based on the separators
+    char* token = strtok(buffer, separator);
+
+    // Keep counting the number of separators until there are no more
+    while (token != NULL) 
+    {
+        // Increment the column counter
+        columnLength++;
+
+        // Get the next token
+        token = strtok(NULL, separator);
+    }
+
+    rewind(filePointer);
 
     // Create Array of Pointers
     char*** data = (char***) malloc (fileLength * sizeof(char**)); 
@@ -288,7 +250,7 @@ struct dataContainer2D getData(const char* filename)
 
     fgets(buffer, bufferLength, filePointer);
     buffer[strcspn(buffer, "\n")] = 0;
-    char* token = strtok(buffer, separator);
+    token = strtok(buffer, separator);
     int j=0;
 
     while (token != NULL) 
