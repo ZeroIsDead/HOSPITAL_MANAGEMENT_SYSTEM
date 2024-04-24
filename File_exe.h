@@ -64,7 +64,7 @@ struct dataContainer1D
     int x; // x - number of columns / elements in the array
 };
 
-struct dataContainer1D queryField(char* file, char* field);
+struct dataContainer1D queryField(const char* file, char* field);
 
 void clearTerminal() {
     printf("\e[1;1H\e[2J");
@@ -293,7 +293,7 @@ struct dataContainer2D getData(const char* filename)
  * It takes a filename and a key as input, and returns a struct
  * that contains the corresponding data and fields of the record.
  */
-struct dataContainer1D queryKey(char* filename, char* key) 
+struct dataContainer1D queryKey(const char* filename, char* key) 
 {
     struct dataContainer2D data = getData(filename);
 
@@ -353,7 +353,7 @@ struct dataContainer1D queryKey(char* filename, char* key)
 }
 
 // Returns an array of values in the field column
-struct dataContainer1D queryField(char* filename, char* field) 
+struct dataContainer1D queryField(const char* filename, char* field) 
 {
 
     struct dataContainer2D data = getData(filename);
@@ -403,7 +403,7 @@ struct dataContainer1D queryField(char* filename, char* field)
 }
 
 // Return the record with the specified key in the field column
-struct dataContainer2D queryFieldStrict(char* filename, char* field, char* key) 
+struct dataContainer2D queryFieldStrict(const char* filename, char* field, char* key) 
 { 
     struct dataContainer2D returnedValue;
     returnedValue.error = 0;
@@ -475,9 +475,48 @@ struct dataContainer2D queryFieldStrict(char* filename, char* field, char* key)
 
 // DATA WRITE FUNCTIONS
 
-int writeData(char* filename, char** data) 
+int writeData(const char* filename, struct dataContainer2D array) 
 {
+    FILE* filePointer = filecheck(filename, "w");
+    
+    //allocating memory for Every Line
+    char* line = malloc (array.x * sizeof(char*));
+    
+    //concatenate into one line
+    for (int i = 0; i < array.x; i++)
+    {
+        strcat(line, array.fields[i]); 
+        strcat(line, ";");
+    }
+    strcat(line, "\n");
 
+    //write into file
+    fputs(line, filePointer);
+    
+    for (int i=0; i < array.y; i++)
+    {   
+        // Clear line
+        line[0] = '\0';
+        
+        //concatenate into one line
+        for (int j = 0; j < array.x; j++)
+        {
+            strcat(line, array.data[i][j]); 
+            strcat(line, ";");
+        }
+        strcat(line, "\n");
+
+        //write line into file
+        fputs(line, filePointer);
+
+    }
+
+    fclose(filePointer);
+
+    freeMalloc(array);
+    free(line);
+
+    return 0; // Return if Nothing Goes Wrong
 }
 
 /* This function write a new record(values) to a file.
@@ -565,10 +604,34 @@ int append_file(const char* filename, int numInputs, const char* inputs[]) {
     return 0;
 }
 
-int updateData(char* filename, char* key, char** data) {
-// Sandaris will handle
+int updateData(const char* filename, char** relaying_array) 
+{   
+//getData of the file
+    struct dataContainer2D master = getData(filename);
+    const int uniqueIDIndex = 0;
+
+    //iterate vertically through data search for the unique key
+    for (int i=0; i<master.y; i++) 
+    {   
+        //IF FOUND the unique
+        if(!strncmp(master.data[i][uniqueIDIndex], relaying_array[uniqueIDIndex], 255))
+        {
+            //store the relaying array into master
+
+            for (int j=0; j<master.x; j++) 
+            {
+                master.data[i][j] = strdup(relaying_array[j]);
+            }
+        }
+        
+    }    
+
+/*UPLOAD TO FILE*/
+    free(relaying_array);
+
+    return writeData(filename, master);
 }
 
-int deleteKey(char* file, char* key) {
+int deleteKey(const char* file, char* key) {
 // working on it
 }
