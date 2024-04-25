@@ -475,12 +475,15 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
 
 // DATA WRITE FUNCTIONS
 
+//take 2D array and concatenate into one line and write into file
 int writeData(const char* filename, struct dataContainer2D array) 
 {
     FILE* filePointer = filecheck(filename, "w");
     
-    //allocating memory for Every Line
-    char* line = malloc (array.x * sizeof(char*));
+    char line[array.x * 2 + 1]; 
+    
+/*Field names*/
+    line[0] = '\0'; // Initialize the line buffer
     
     //concatenate into one line
     for (int i = 0; i < array.x; i++)
@@ -490,12 +493,13 @@ int writeData(const char* filename, struct dataContainer2D array)
     }
     strcat(line, "\n");
 
-    //write into file
+    //write field_names into file
     fputs(line, filePointer);
     
+/*Values*/
     for (int i=0; i < array.y; i++)
     {   
-        // Clear line
+        // Clear line buffer
         line[0] = '\0';
         
         //concatenate into one line
@@ -514,7 +518,6 @@ int writeData(const char* filename, struct dataContainer2D array)
     fclose(filePointer);
 
     freeMalloc(array);
-    free(line);
 
     return 0; // Return if Nothing Goes Wrong
 }
@@ -604,6 +607,11 @@ int append_file(const char* filename, int numInputs, const char* inputs[]) {
     return 0;
 }
 
+/*Update old record into existing file
+
+updateData("file_name_without.txt", array);
+
+*/
 int updateData(const char* filename, char** relaying_array) 
 {   
 //getData of the file
@@ -626,12 +634,47 @@ int updateData(const char* filename, char** relaying_array)
         
     }    
 
-/*UPLOAD TO FILE*/
     free(relaying_array);
 
     return writeData(filename, master);
-}
+}   
 
-int deleteKey(const char* file, char* key) {
-// working on it
+//deleteKey("test", unique_key);
+int deleteKey(const char* filename, char* unique_key) 
+{
+    struct dataContainer2D master = getData(filename);
+    
+    master.y = master.y - 1;
+
+    for (int i=0; i<master.y; i++) 
+    {   
+        //IF FOUND the unique
+        if(!strncmp(master.data[i][0], unique_key, 255))
+        {   
+            //delete that record
+            for (int j=i; j<master.y; j++)
+            {
+                master.data[j] = master.data[j+1];
+            }
+            
+        }
+    }    
+
+    for (int i=0; i<master.x; i++)
+    {
+        printf("%s;", master.fields[i]);
+    }
+
+    printf("\n");
+
+    for (int i=0; i<master.y; i++)
+    {
+        for (int j=0; j<master.x; j++)
+        {
+            printf("%s;", master.data[i][j]);
+        }
+        printf("\n");
+    }
+
+    return writeData(filename, master);
 }
