@@ -8,25 +8,16 @@
 
 int main()
 {
-    char UserID[MAX_LINE_LENGTH];
-    char UserPW[MAX_LINE_LENGTH];
-    char Name[MAX_LINE_LENGTH];
-    char Tags[MAX_LINE_LENGTH];
+    // char* input[] = {UserID, UserPW, Name, Tags};
+    struct dataContainer2D master = getData("users");
 
-    printf("Enter UserID: ");
-    fgets(UserID, MAX_LINE_LENGTH, stdin);
+    char* unique_key = "POTATO5";
+    struct dataContainer1D data = queryKey("users", "POTATO6");
 
-    printf("Enter UserPW: ");
-    fgets(UserPW, MAX_LINE_LENGTH, stdin);
-   
-    printf("Enter Name: ");
-    fgets(Name, MAX_LINE_LENGTH, stdin);
-   
-    printf("Enter Tags: "); 
-    fgets(Tags, MAX_LINE_LENGTH, stdin);
-   
-    const char* input[] = {UserID, UserPW, Name, Tags};
 
-    append_file("Users.txt", 4, input);
+    data.data[3] = "WORKdEUWUWbabaUWW??";
+
+    deleteKey("users", unique_key);
+
 
 }

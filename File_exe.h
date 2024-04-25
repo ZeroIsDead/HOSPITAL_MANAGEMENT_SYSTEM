@@ -660,21 +660,5 @@ int deleteKey(const char* filename, char* unique_key)
         }
     }    
 
-    for (int i=0; i<master.x; i++)
-    {
-        printf("%s;", master.fields[i]);
-    }
-
-    printf("\n");
-
-    for (int i=0; i<master.y; i++)
-    {
-        for (int j=0; j<master.x; j++)
-        {
-            printf("%s;", master.data[i][j]);
-        }
-        printf("\n");
-    }
-
     return writeData(filename, master);
 }
