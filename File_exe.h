@@ -19,6 +19,7 @@ FILE* filecheck(const char* filename, const char* mode)
     if(getcwd(folderPath, sizeof(folderPath)) == NULL)
     {
         perror("getcwd() error");
+        return NULL;
     }
 
     //strcat the assignment folder path with data folder
@@ -43,6 +44,7 @@ FILE* filecheck(const char* filename, const char* mode)
     if(filePointer == NULL)
     {
         printf("Error opening file %s!\n", filename);
+        return NULL;
     }
     return filePointer;
 }
@@ -218,13 +220,33 @@ int displayMenu(char* header, char** options, int noOptions)
  * and then frees the memory allocated for the line itself. Finally, it frees the memory
  * allocated for the fields and the data array.
  */
-void freeMalloc(struct dataContainer2D pointer) 
+void freeMalloc2D(struct dataContainer2D pointer) 
 {
+    printf("YES1\n");
     for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
     }
+    printf("YES2\n");
+
+
     free(pointer.data);
+    printf("YES3\n");
+
     free(pointer.fields);
+    printf("YES4\n");
+
+}
+
+// Frees the memory allocated for the dataContainer1D struct
+void freeMalloc1D(struct dataContainer1D pointer) {
+    printf("YES1\n");
+
+    free(pointer.data);
+    printf("YES2\n");
+
+    free(pointer.fields);
+    printf("YES3\n");
+
 }
 
 /*DATA READ FUNCTIONS*/
@@ -237,7 +259,15 @@ struct dataContainer2D getData(const char* filename)
 
     const char* separator = ";";
 
+    struct dataContainer2D container;
+    container.error = 0;
+
     FILE* filePointer = filecheck(filename, "r");
+
+    if (filePointer == NULL) {
+        container.error = 1;
+        return container;
+    }
 
     const int fieldColumn = 1;
 
@@ -294,6 +324,8 @@ struct dataContainer2D getData(const char* filename)
         token = strtok(NULL, separator);
     }
 
+    container.fields = fields;
+
     // Get Data
     int i=0;
 
@@ -313,10 +345,6 @@ struct dataContainer2D getData(const char* filename)
     }
     fclose(filePointer);
 
-    struct dataContainer2D container;
-
-    container.error = 0;
-    container.fields = fields;
     container.data = data;
     container.x = columnLength;
     container.y = fileLength;
@@ -342,54 +370,50 @@ struct dataContainer1D queryKey(const char* filename, char* key)
     returnedValue.error = 0;
 
     if (data.error) {
+        freeMalloc2D(data);
         returnedValue.error = 1;
         return returnedValue;
     }
 
-    char* IDField = data.fields[0];
-
-// Get Field Index
-    int fieldColumn = -1;
-
-    for (int i=0; i<data.x; i++) 
-    {
-        if (!strncmp(data.fields[i], IDField, 255))
-        {
-            fieldColumn = i;
-            break;
-        }
-    }
-
-    // Fail to find
-    if (fieldColumn == -1) 
-    {
-        freeMalloc(data);
-        returnedValue.error = 1;
-        return returnedValue;
-    }
 
     // Get all Data In the Specified Field Column
     char** IDs = (char**) malloc (data.y * sizeof(char*));
+
+    const int fieldColumn = 0;
 
     for (int i=0; i<data.y; i++) 
     {
         IDs[i] = strdup(data.data[i][fieldColumn]);
     }
 
+    char** relayDataArray = (char**) malloc (data.x * sizeof(char*));
+    char** relayFieldArray = (char**) malloc (data.x * sizeof(char*));
+
 
     for (int i=0; i<data.y; i++) 
     {
         if (!strncmp(IDs[i], key, 255)) 
         {
+            // Copy Data to Relay Array
+            for (int j=0; j<data.x; j++) {
+                relayDataArray[j] = strdup(data.data[i][j]);
+                relayFieldArray[j] = strdup(data.fields[j]);
+            }
 
-            returnedValue.data = data.data[i];
-            returnedValue.fields = data.fields;
+            returnedValue.data = relayDataArray;
+            returnedValue.fields = relayFieldArray;
             returnedValue.x = data.x;
+
+            freeMalloc2D(data);
 
             return returnedValue;
         }
+        
     }
 
+    free(IDs);
+    freeMalloc2D(data);
+    returnedValue.error = 1;
     return returnedValue;
 }
 
@@ -418,11 +442,10 @@ struct dataContainer1D queryField(const char* filename, char* field)
         }
     }
 
-
     // Fail to find
     if (fieldColumn == -1) 
     {
-        freeMalloc(data);
+        freeMalloc2D(data);
         returnedValue.error = 1;
         return returnedValue;
     }
@@ -438,7 +461,11 @@ struct dataContainer1D queryField(const char* filename, char* field)
     returnedValue.data = fieldData;
     returnedValue.x = data.y;
 
-    freeMalloc(data);
+    char** fieldName = (char**) malloc (1 * sizeof(char*));
+
+    returnedValue.fields = fieldName;
+
+    freeMalloc2D(data);
 
     return returnedValue;
 }
@@ -450,7 +477,18 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     returnedValue.error = 0;
 
     struct dataContainer2D data = getData(filename);
-    returnedValue.fields = data.fields;
+
+    if (data.error) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    char** relayFieldArray = (char**) malloc (data.x * sizeof(char*));
+    for (int i=0; i<data.x; i++) {
+        relayFieldArray[i] = strdup(data.fields[i]);
+    }
+
+    returnedValue.fields = relayFieldArray;
     returnedValue.x = data.x;
 
     // Get Field Index
@@ -468,7 +506,7 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     // Fail to find
     if (fieldColumn == -1) 
     {
-        freeMalloc(data);
+        freeMalloc2D(data);
         returnedValue.error = 1;
         return returnedValue;
     }
@@ -489,8 +527,7 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     {
         if (!strncmp(fieldData[i], key, 255)) 
         { // Compare Strings
-            buffer[count] = data.data[i];
-            count++;
+            buffer[count++] = data.data[i];
         }
     }
 
@@ -508,7 +545,7 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     returnedValue.data = returnedData;
     returnedValue.y = count;
 
-    freeMalloc(data);
+    freeMalloc2D(data);
     free(fieldData);
 
     return returnedValue;
@@ -523,7 +560,7 @@ int writeData(const char* filename, struct dataContainer2D array)
     
     char line[array.x * 2 + 1]; 
     
-/*Field names*/
+    /*Field names*/
     line[0] = '\0'; // Initialize the line buffer
     
     //concatenate into one line
@@ -537,7 +574,7 @@ int writeData(const char* filename, struct dataContainer2D array)
     //write field_names into file
     fputs(line, filePointer);
     
-/*Values*/
+    /*Values*/
     for (int i=0; i < array.y; i++)
     {   
         // Clear line buffer
@@ -558,7 +595,7 @@ int writeData(const char* filename, struct dataContainer2D array)
 
     fclose(filePointer);
 
-    freeMalloc(array);
+    freeMalloc2D(array);
 
     return 0; // Return if Nothing Goes Wrong
 }
@@ -676,7 +713,7 @@ Sample of implementation:
 */
 int updateData(const char* filename, char** relaying_array) 
 {   
-//getData of the file
+    //getData of the file
     struct dataContainer2D master = getData(filename);
     const int uniqueIDIndex = 0;
 
@@ -693,7 +730,6 @@ int updateData(const char* filename, char** relaying_array)
                 master.data[i][j] = strdup(relaying_array[j]);
             }
         }
-        
     }    
 
     free(relaying_array);
@@ -727,6 +763,7 @@ int deleteKey(const char* filename, char* unique_key)
         if(!strncmp(master.data[i][0], unique_key, 255))
         {   
             //delete that record
+            free(master.data[i]);
             for (int j=i; j<master.y; j++)
             {
                 master.data[j] = master.data[j+1];
