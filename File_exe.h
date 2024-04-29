@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <math.h>
 
+/*ULTILITIES*/
+
 /*This function open the file for you, check the existance of file in the data folder, if file doesnt exist, raise a wrong filename error and prevent creating a new file, lastly return a file pointer of the file you opened.
 * 
 *Parameter:
@@ -227,7 +229,7 @@ void freeMalloc(struct dataContainer2D pointer)
     free(pointer.fields);
 }
 
-/*DATA READ FUNCTIONS*/
+///////////////////////////////////*DATA READ FUNCTIONS*////////////////////////////////////////////////
 
 // returns a struct that holds the field and data of the corresponding file
 struct dataContainer2D getData(const char* filename) 
@@ -324,13 +326,19 @@ struct dataContainer2D getData(const char* filename)
     return container;
 }
 
-/*This function queries a file for a record for only unique key/ID.
- * It takes a filename and a key as input, and returns a struct
- * that contains the corresponding data and fields of the record.
+/*____________________________Functions that you can call___________________________________________________________________________________*/
+
+/*Horizontal search using unique_key, return a line of values with that unique_key.
+    * - example: 
+        -- unique_key = POTATO1
+        returns in .data: 
+                    * - POTATO1;password123;John Smith;Doctor;
  
 To call this function:
     struct dataContainer1D <container_name> = queryKey(file_name, unique_key );
     -- container_name: is the name of the struct
+    -- file_name: name of the file that you want to read
+    -- unique_Key: the unique key for the line you want to search for
 
 
  */
@@ -393,7 +401,18 @@ struct dataContainer1D queryKey(const char* filename, char* key)
     return returnedValue;
 }
 
-// Returns an array of values in the field column
+/*Vertical search using field_name, return a line of values with that field_name
+    * - example: struct dataContainer1D UserPW = queryField("users", "UserPW");
+        -- file : users.txt
+        -- field_name = UserPW
+        -- returns : all password values
+
+To call this function:A
+    struct dataContainer1D <container_name> = queryField(file_name, field );
+    -- container_name: is the name of the struct
+    -- file_name: name of the file that you want to read
+    -- field: the field you want to use for the search
+*/
 struct dataContainer1D queryField(const char* filename, char* field) 
 {
 
@@ -443,7 +462,21 @@ struct dataContainer1D queryField(const char* filename, char* field)
     return returnedValue;
 }
 
-// Return the record with the specified key in the field column
+/*Horizontal search using field_name, return a horizontal line of values using the field
+    * - example: 
+        -- fieldname = Tags
+        -- fieldvalue = Doctor
+        returns in .data: 
+                        * - POTATO1;password123;John Smith;Doctor;
+                        * - POTATO4;abc123;Sarah Brown;Doctor;
+                        * - POTATO7;secure432;Brian Miller;Doctor;
+To call this function:
+    struct dataContainer1D <container_name> = queryFieldStrict(file_name, field, key );
+    -- container_name: is the name of the struct
+    -- file_name: name of the file that you want to read
+    -- field: the field you want to use for the search
+    -- key : the value you want to search in the field
+*/
 struct dataContainer2D queryFieldStrict(const char* filename, char* field, char* key) 
 { 
     struct dataContainer2D returnedValue;
@@ -514,7 +547,9 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     return returnedValue;
 }
 
-/* DATA WRITE FUNCTIONS*/
+/*__________________________Functions that you can call ends here___________________________________________________________________________________*/
+
+///////////////////////////////////* DATA WRITE FUNCTIONS*////////////////////////////////////////////////
 
 //take 2D array and concatenate into one line and write into file
 int writeData(const char* filename, struct dataContainer2D array) 
@@ -562,6 +597,8 @@ int writeData(const char* filename, struct dataContainer2D array)
 
     return 0; // Return if Nothing Goes Wrong
 }
+
+/*____________________________Functions that you can call starts here___________________________________________________________________________________*/
 
 /* This function write a new record(values) to a file.
     *Parameter: 
@@ -737,3 +774,5 @@ int deleteKey(const char* filename, char* unique_key)
 
     return writeData(filename, master);
 }
+
+/*___________________________Functions that you can call ends here_________________________________________________________________________*/
