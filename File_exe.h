@@ -354,7 +354,7 @@ struct dataContainer2D getData(const char* filename)
     return container;
 }
 
-/*____________________________Functions that you can call___________________________________________________________________________________*/
+/*____________________________3 Functions that you can call___________________________________________________________________________________*/
 
 /*Horizontal search using unique_key, return a line of values with that unique_key.
     * - example: 
@@ -635,7 +635,7 @@ int writeData(const char* filename, struct dataContainer2D array)
     return 0; // Return if Nothing Goes Wrong
 }
 
-/*____________________________Functions that you can call starts here___________________________________________________________________________________*/
+/*____________________________3 Functions that you can call starts here___________________________________________________________________________________*/
 
 /* This function write a new record(values) to a file.
     *Parameter: 
