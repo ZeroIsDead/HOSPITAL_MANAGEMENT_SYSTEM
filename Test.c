@@ -7,17 +7,28 @@
 #define MAX_LINE_LENGTH 256
 
 int main()
-{
-    // char* input[] = {UserID, UserPW, Name, Tags};
-    struct dataContainer2D master = getData("users");
+{   
+    char UserID[MAX_LINE_LENGTH];
+    
+    printf("Enter UserID: ");
+    scanf("%s", UserID);
 
-    char* unique_key = "POTATO5";
-    struct dataContainer1D data = queryKey("users", "POTATO6");
+    //CONTINUE PW CHECK
+    
+    // fgets(UserID, sizeof(UserID), stdin);
+    // UserID[strcspn(UserID, "\n")] = '\0';
 
+    struct dataContainer1D data = queryKey("users", UserID);
 
-    data.data[3] = "WORKdEUWUWbabaUWW??";
+    for (int i = 0; i < data.x; i++)
+    {
+        int j = i + 1;
+        printf("%d. %s\n",j, data.data[i]);
+    }   
 
-    deleteKey("users", unique_key);
+    // data.data[3] = "WORKdEUWUWbabaUWW??";
+
+    // updateData("users", data.data);
 
 
 }

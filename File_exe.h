@@ -47,15 +47,48 @@ FILE* filecheck(const char* filename, const char* mode)
     return filePointer;
 }
 
+/*A 2D data container to store entire data of the file.
+
+you use this 2Dcontainer to store data from **getData() most of the time.
+
+Implementaton:
+
+*- call  struct dataContainer2D <container_name> = getData( file_name );
+    -- container_name: is the name of the struct
+    -- file_name: is the name of the file you want to read without .txt
+    
+To use the element in the struct:
+    * - container_name.field_name : return you the field_names in the file 
+    * - container_name.data : a 2D array containing each line from the file
+    * - container_name.y : number of rows / horizontal lines count of the file 
+    * - container_name .x : number of columns / vertical lines count of the file
+
+*/
 struct dataContainer2D 
 {
     int error; // 1 - error | 0 - fine
     char** fields; // an array containing the fields
     char*** data; // a 2D array containing each line of data
-    int y; //y - number of lines / arrays in the 2D array
+    int y; //y - number of rows / lines / arrays in the 2D array
     int x; //x - number of columns / elements in each array
 };
 
+/*A 1D data container to store a single line of data from  the file.
+
+you use this 1Dcontainer to store data( single line ) from : queryField(), queryKey(), etc. 
+
+Implementaton:
+*- call  struct dataContainer1D <container_name> = queryField( file_name, field_name );
+    -- container_name: is the name of the struct
+    -- file_name: is the name of the file you want to read without .txt
+    -- field_name: is the name of the field you want to read from the file
+    
+To use the element in the struct:
+    * - container_name.field_name : return you the field_names in the file 
+    * - container_name.data : a 1D contain specific line from the file according to the field_name you put
+    * - container_name . x : number of columns / vertical lines count of the file / number of elements in the line
+
+*/
 struct dataContainer1D 
 {
     int error; // 1 - error | 0 - fine
@@ -294,6 +327,12 @@ struct dataContainer2D getData(const char* filename)
 /*This function queries a file for a record for only unique key/ID.
  * It takes a filename and a key as input, and returns a struct
  * that contains the corresponding data and fields of the record.
+ 
+To call this function:
+    struct dataContainer1D <container_name> = queryKey(file_name, unique_key );
+    -- container_name: is the name of the struct
+
+
  */
 struct dataContainer1D queryKey(const char* filename, char* key) 
 {
@@ -613,11 +652,26 @@ int append_file(const char* filename, int numInputs, const char* inputs[])
 /*Update existing record in existing file
 
 *Parameter: 
-    * - filename: name of the file without .txt [example : "Users", relaying_array]
-         *wdw
-    * - relaying_array: array that store all updated inputs
+    * - filename: name of the file without .txt [example : users, Patient_IDs, Inventory]
 
-updateData("file_name_without.txt", array);
+    * - relaying_array: array that store all updated inputs
+        -- if you do: struct dataContainer1D master = queryKey("users", UserID);
+        data.data is your array
+
+        >> you can read struct datacontainer1D above
+
+updateData("file_name", master.data);
+
+Sample of implementation:
+
+*1. Get your unqiue_key input as Unique_key
+
+*2. use: struct dataContainer1D master = queryKey("file_name", Unique_key);
+    * - the data is stored in master.data 
+
+*3. Modify accordingly by using different index of master.data[ your_index_here ]
+
+*4. call: updateData("file_name_without.txt", master.data);
 
 */
 int updateData(const char* filename, char** relaying_array) 
@@ -647,7 +701,20 @@ int updateData(const char* filename, char** relaying_array)
     return writeData(filename, master);
 }   
 
-//deleteKey("test", unique_key);
+/*Delete existing record in existing file:
+
+*Parameter:
+    * - filename: name of the file without .txt
+    * - unique_key: unique key of the record you want to delete
+
+deleteKey("filename", unique_key);
+
+Sample of implementation:
+
+*1. Get your the unqiue_key of the lines of record you want to delete
+
+*2. call: deleteKey("filename_without.txt", unique_key);
+*/
 int deleteKey(const char* filename, char* unique_key) 
 {
     struct dataContainer2D master = getData(filename);
