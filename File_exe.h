@@ -227,7 +227,7 @@ void freeMalloc(struct dataContainer2D pointer)
     free(pointer.fields);
 }
 
-// DATA READ FUNCTIONS
+/*DATA READ FUNCTIONS*/
 
 // returns a struct that holds the field and data of the corresponding file
 struct dataContainer2D getData(const char* filename) 
@@ -514,7 +514,7 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     return returnedValue;
 }
 
-// DATA WRITE FUNCTIONS
+/* DATA WRITE FUNCTIONS*/
 
 //take 2D array and concatenate into one line and write into file
 int writeData(const char* filename, struct dataContainer2D array) 
@@ -581,7 +581,7 @@ int writeData(const char* filename, struct dataContainer2D array)
         
     * - append_file("Users", 4, inputs);
 */
-int append_file(const char* filename, int numInputs, const char* inputs[]) 
+int write_new_data(const char* filename, int numInputs, const char* inputs[]) 
 {
     
     /*Things to add in this Function:
