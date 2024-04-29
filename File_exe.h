@@ -224,31 +224,17 @@ int displayMenu(char* header, char** options, int noOptions)
  */
 void freeMalloc2D(struct dataContainer2D pointer) 
 {
-    printf("YES1\n");
     for (int i = 0; i < pointer.y; i++) {
         free(pointer.data[i]);
     }
-    printf("YES2\n");
-
-
     free(pointer.data);
-    printf("YES3\n");
-
     free(pointer.fields);
-    printf("YES4\n");
-
 }
 
 // Frees the memory allocated for the dataContainer1D struct
 void freeMalloc1D(struct dataContainer1D pointer) {
-    printf("YES1\n");
-
     free(pointer.data);
-    printf("YES2\n");
-
     free(pointer.fields);
-    printf("YES3\n");
-
 }
 
 ///////////////////////////////////*DATA READ FUNCTIONS*////////////////////////////////////////////////
