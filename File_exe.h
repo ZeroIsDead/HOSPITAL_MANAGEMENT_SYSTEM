@@ -66,11 +66,13 @@ struct dataContainer1D
 
 struct dataContainer1D queryField(const char* file, char* field);
 
-void clearTerminal() {
+void clearTerminal() 
+{
     printf("\e[1;1H\e[2J");
 }
 
-int displayMenu(char* header, char** options, int noOptions) {
+int displayMenu(char* header, char** options, int noOptions) 
+{
     // get max sizeof option string
     int maxLength = strlen(header);
     int stringLengths[noOptions];
@@ -540,7 +542,8 @@ int writeData(const char* filename, struct dataContainer2D array)
         
     * - append_file("Users", 4, inputs);
 */
-int append_file(const char* filename, int numInputs, const char* inputs[]) {
+int append_file(const char* filename, int numInputs, const char* inputs[]) 
+{
     
     /*Things to add in this Function:
     - Validate numInputs with field numbers
@@ -607,7 +610,12 @@ int append_file(const char* filename, int numInputs, const char* inputs[]) {
     return 0;
 }
 
-/*Update old record into existing file
+/*Update existing record in existing file
+
+*Parameter: 
+    * - filename: name of the file without .txt [example : "Users", relaying_array]
+         *wdw
+    * - relaying_array: array that store all updated inputs
 
 updateData("file_name_without.txt", array);
 
