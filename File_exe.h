@@ -296,16 +296,16 @@ struct dataContainer2D getData(const char* filename)
     rewind(filePointer);
 
     // Create Array of Pointers
-    char*** data = (char***) malloc (fileLength * sizeof(char**)); 
+    char*** data = malloc (fileLength * sizeof(char**)); 
 
     // Place Pointers of Arrays into the Array to Make a 2D array
     for (int i=0; i < fileLength; i++) 
     {
-        data[i] = (char**) malloc (columnLength * sizeof(char*));
+        data[i] = malloc (columnLength * sizeof(char*));
     }
 
     // get Fields
-    char** fields = (char**) malloc (columnLength * sizeof(char*));
+    char** fields = malloc (columnLength * sizeof(char*));
 
     fgets(buffer, bufferLength, filePointer);
     buffer[strcspn(buffer, "\n")] = 0;
@@ -377,7 +377,7 @@ struct dataContainer1D queryKey(const char* filename, char* key)
 
 
     // Get all Data In the Specified Field Column
-    char** IDs = (char**) malloc (data.y * sizeof(char*));
+    char** IDs = malloc (data.y * sizeof(char*));
 
     const int fieldColumn = 0;
 
@@ -386,8 +386,8 @@ struct dataContainer1D queryKey(const char* filename, char* key)
         IDs[i] = strdup(data.data[i][fieldColumn]);
     }
 
-    char** relayDataArray = (char**) malloc (data.x * sizeof(char*));
-    char** relayFieldArray = (char**) malloc (data.x * sizeof(char*));
+    char** relayDataArray = malloc (data.x * sizeof(char*));
+    char** relayFieldArray = malloc (data.x * sizeof(char*));
 
 
     for (int i=0; i<data.y; i++) 
@@ -462,7 +462,7 @@ struct dataContainer1D queryField(const char* filename, char* field)
     }
 
     // Get all Data In the Specified Field Column
-    char** fieldData = (char**) malloc (data.y * sizeof(char*));
+    char** fieldData = malloc (data.y * sizeof(char*));
 
     for (int i=0; i<data.y; i++) 
     {
@@ -472,7 +472,7 @@ struct dataContainer1D queryField(const char* filename, char* field)
     returnedValue.data = fieldData;
     returnedValue.x = data.y;
 
-    char** fieldName = (char**) malloc (1 * sizeof(char*));
+    char** fieldName = malloc (1 * sizeof(char*));
 
     returnedValue.fields = fieldName;
 
@@ -508,7 +508,7 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
         return returnedValue;
     }
 
-    char** relayFieldArray = (char**) malloc (data.x * sizeof(char*));
+    char** relayFieldArray = malloc (data.x * sizeof(char*));
     for (int i=0; i<data.x; i++) {
         relayFieldArray[i] = strdup(data.fields[i]);
     }
@@ -537,7 +537,7 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     }
 
     // Get all Data In the Specified Field Column
-    char** fieldData = (char**) malloc (data.y * sizeof(char*));
+    char** fieldData = malloc (data.y * sizeof(char*));
 
     for (int i=0; i<data.y; i++) 
     {
@@ -556,11 +556,11 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
         }
     }
 
-    char*** returnedData = (char***) malloc (count * sizeof(char**));
+    char*** returnedData = malloc (count * sizeof(char**));
 
     for (int i=0; i<count; i++) 
     {
-        returnedData[i] = (char**) malloc (data.x * sizeof(char*));
+        returnedData[i] = malloc (data.x * sizeof(char*));
         for (int j=0; j<data.x; j++) 
         {
             returnedData[i][j] = strdup(buffer[i][j]);
