@@ -108,7 +108,11 @@ void clearTerminal()
     printf("\e[1;1H\e[2J");
 }
 
-int displayMenu(char* header, char** options, int noOptions) 
+
+/*char* options[] = {"ar", "a", "b", "C"};
+
+    displayMenu("GOD", options, 4);*/
+int displayMenu(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
     int maxLength = strlen(header);
