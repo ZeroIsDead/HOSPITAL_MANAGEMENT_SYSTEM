@@ -108,9 +108,6 @@ void clearTerminal()
     printf("\e[1;1H\e[2J");
 }
 
-
-
-
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
@@ -758,6 +755,10 @@ int updateData(const char* filename, char** relaying_array)
             {
                 master.data[i][j] = strdup(relaying_array[j]);
             }
+        }
+        else
+        {
+            printf("Record not found! Check your input again!\n");
         }
     }    
 
