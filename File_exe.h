@@ -756,10 +756,6 @@ int updateData(const char* filename, char** relaying_array)
                 master.data[i][j] = strdup(relaying_array[j]);
             }
         }
-        else
-        {
-            printf("Record not found! Check your input again!\n");
-        }
     }    
 
     free(relaying_array);
