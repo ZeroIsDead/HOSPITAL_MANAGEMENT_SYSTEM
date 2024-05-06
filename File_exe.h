@@ -758,8 +758,6 @@ int updateData(const char* filename, char** relaying_array)
         }
     }    
 
-    free(relaying_array);
-
     return writeData(filename, master);
 }   
 
