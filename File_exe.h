@@ -102,8 +102,6 @@ struct dataContainer1D
     int x; // x - number of columns / elements in the array
 };
 
-struct dataContainer1D queryField(const char* file, char* field);
-
 void clearTerminal() 
 {
     printf("\e[1;1H\e[2J");
@@ -206,47 +204,47 @@ int displayMenu(char* header, char* options[], int noOptions)
     }
     printf("\n");
 
-            // Get Input
-        int bufferLength = 256;
-        char input[bufferLength];
-        printf("Enter your Input: ");
+    // Get Input
+    int bufferLength = 256;
+    char input[bufferLength];
+    printf("Enter your Input: ");
 
-        fgets(input, bufferLength, stdin);   
-        input[strcspn(input, "\n")] = 0;
+    fgets(input, bufferLength, stdin);   
+    input[strcspn(input, "\n")] = 0;
 
-        int isDigit = 0;
-        for (int i; input[i]; i++) {
-            isDigit += isdigit(input[i]);
+    int isDigit = 0;
+    for (int i; input[i]; i++) {
+        isDigit += isdigit(input[i]);
+    }
+
+    int intInput = atoi(input);
+    if (isDigit && 0 < intInput && intInput <= noOptions) {
+        return options[intInput-1];
+    }
+
+    // Lowercase the input string
+    for (int j=0; input[j]; j++) {
+        input[j] = tolower(input[j]);
+    }
+
+    // Repeat Menu until Valid Input
+    for (int i=0; i<noOptions; i++) {
+        char* option = strdup(options[i]);
+
+        // Lowercase the option string
+        for (int j=0; option[j]; j++) {
+            option[j] = tolower(option[j]);
         }
 
-        int intInput = atoi(input);
-        if (isDigit && 0 < intInput && intInput <= noOptions) {
-            return options[intInput-1];
+        // Compare the strings
+        if (!strncmp(input, option, bufferLength)) {
+            return options[i];
         }
+    }
 
-        // Lowercase the input string
-        for (int j=0; input[j]; j++) {
-            input[j] = tolower(input[j]);
-        }
-
-        // Repeat Menu until Valid Input
-        for (int i=0; i<noOptions; i++) {
-            char* option = strdup(options[i]);
-
-            // Lowercase the option string
-            for (int j=0; option[j]; j++) {
-                option[j] = tolower(option[j]);
-            }
-
-            // Compare the strings
-            if (!strncmp(input, option, bufferLength)) {
-                return options[i];
-            }
-        }
-
-        // Repeat Menu until Valid Input
-        clearTerminal();
-        displayMenu(header, options, noOptions);
+    // Repeat Menu until Valid Input
+    clearTerminal();
+    displayMenu(header, options, noOptions);
 }
 
 /* This function frees the memory allocated for the dataContainer2D struct.
