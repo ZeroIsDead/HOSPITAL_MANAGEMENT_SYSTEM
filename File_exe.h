@@ -3,6 +3,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <math.h>
+#include <ctype.h>
 
 /*ULTILITIES*/
 
@@ -205,19 +206,47 @@ int displayMenu(char* header, char* options[], int noOptions)
     }
     printf("\n");
 
-    // Get Input
-    int input;
-    printf("Enter your Input: ");
-    scanf("%d", &input);
+            // Get Input
+        int bufferLength = 256;
+        char input[bufferLength];
+        printf("Enter your Input: ");
 
-    // Return Valid Input
-    if (0 < input && input < noOptions) {
-        return input;
-    }
+        fgets(input, bufferLength, stdin);   
+        input[strcspn(input, "\n")] = 0;
 
-    // Repeat Menu until Valid Input
-    clearTerminal();
-    displayMenu(header, options, noOptions);
+        int isDigit = 0;
+        for (int i; input[i]; i++) {
+            isDigit += isdigit(input[i]);
+        }
+
+        int intInput = atoi(input);
+        if (isDigit && 0 < intInput && intInput <= noOptions) {
+            return options[intInput-1];
+        }
+
+        // Lowercase the input string
+        for (int j=0; input[j]; j++) {
+            input[j] = tolower(input[j]);
+        }
+
+        // Repeat Menu until Valid Input
+        for (int i=0; i<noOptions; i++) {
+            char* option = strdup(options[i]);
+
+            // Lowercase the option string
+            for (int j=0; option[j]; j++) {
+                option[j] = tolower(option[j]);
+            }
+
+            // Compare the strings
+            if (!strncmp(input, option, bufferLength)) {
+                return options[i];
+            }
+        }
+
+        // Repeat Menu until Valid Input
+        clearTerminal();
+        displayMenu(header, options, noOptions);
 }
 
 /* This function frees the memory allocated for the dataContainer2D struct.
