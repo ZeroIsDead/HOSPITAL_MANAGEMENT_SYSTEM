@@ -110,7 +110,7 @@ void clearTerminal()
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
-int displayMenu(char* header, char* options[], int noOptions) 
+char* displayMenu(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
     int maxLength = strlen(header);
@@ -212,9 +212,9 @@ int displayMenu(char* header, char* options[], int noOptions)
     fgets(input, bufferLength, stdin);   
     input[strcspn(input, "\n")] = 0;
 
-    int isDigit = 0;
-    for (int i; input[i]; i++) {
-        isDigit += isdigit(input[i]);
+    int isDigit = 1;
+    for (int i; input[i] && isDigit; i++) {
+        isDigit = isdigit(input[i]);
     }
 
     int intInput = atoi(input);
