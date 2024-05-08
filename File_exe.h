@@ -248,7 +248,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
 
     // Repeat Menu until Valid Input
     clearTerminal();
-    printf("INPUT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.");
+    printf("INSERT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.");
     sleep(5);
     clearTerminal();
     displayMenu(header, options, noOptions);
