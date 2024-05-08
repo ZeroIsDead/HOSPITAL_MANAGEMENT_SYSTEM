@@ -1,0 +1,1 @@
+BillsID;ReportID;MedicineID;PatientUserID;Charges;

@@ -3,6 +3,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <math.h>
+#include <ctype.h>
+#include <unistd.h>
 
 /*ULTILITIES*/
 
@@ -101,8 +103,6 @@ struct dataContainer1D
     int x; // x - number of columns / elements in the array
 };
 
-struct dataContainer1D queryField(const char* file, char* field);
-
 void clearTerminal() 
 {
     printf("\e[1;1H\e[2J");
@@ -111,7 +111,7 @@ void clearTerminal()
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
-int displayMenu(char* header, char* options[], int noOptions) 
+char* displayMenu(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
     int maxLength = strlen(header);
@@ -206,16 +206,50 @@ int displayMenu(char* header, char* options[], int noOptions)
     printf("\n");
 
     // Get Input
-    int input;
+    int bufferLength = 256;
+    char input[bufferLength];
     printf("Enter your Input: ");
-    scanf("%d", &input);
 
-    // Return Valid Input
-    if (0 < input && input < noOptions) {
-        return input;
+    fgets(input, bufferLength, stdin);   
+    input[strcspn(input, "\n")] = 0;
+
+    // Decides if string is a Number
+    int isDigit = 1;
+    for (int i = 0; input[i] && isDigit; i++) {
+        isDigit = isdigit(input[i]);
+    }
+
+    // Checks f input is a Number and is Valid
+    int intInput = atoi(input);
+    if (isDigit && 0 < intInput && intInput <= noOptions) {
+        return options[intInput-1];
+    }
+
+    // Lowercase the input string
+    for (int j=0; input[j]; j++) {
+        input[j] = tolower(input[j]);
+    }
+
+
+    // Repeat Menu until Valid Input
+    for (int i=0; i<noOptions; i++) {
+        char* option = strdup(options[i]);
+
+        // Lowercase the option string
+        for (int j=0; option[j]; j++) {
+            option[j] = tolower(option[j]);
+        }
+
+        // Compare the strings
+        if (!strncmp(input, option, bufferLength)) {
+            return options[i];
+        }
     }
 
     // Repeat Menu until Valid Input
+    clearTerminal();
+    printf("INPUT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.");
+    sleep(5);
     clearTerminal();
     displayMenu(header, options, noOptions);
 }
@@ -757,8 +791,6 @@ int updateData(const char* filename, char** relaying_array)
             }
         }
     }    
-
-    free(relaying_array);
 
     return writeData(filename, master);
 }   
