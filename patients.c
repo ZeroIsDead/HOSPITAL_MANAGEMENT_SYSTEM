@@ -1,10 +1,17 @@
 #include "File_exe.h"
 
 int login(char* username, char* password, char* role) {
-    
+        
 }
 
 int main() {
+    // DEFAULT MENU
+    char* header = "Patient Menu";
+    char* options[] = {"Appointment", "Electronic Health Records", "Billing"};
+    int noOptions = 3;
+    char* result = displayMenu(header, options, noOptions);
+    printf(result);
+
 // •	Login and logout from the system.
 
 

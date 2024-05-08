@@ -213,11 +213,13 @@ char* displayMenu(char* header, char* options[], int noOptions)
     fgets(input, bufferLength, stdin);   
     input[strcspn(input, "\n")] = 0;
 
+    // Decides if string is a Number
     int isDigit = 1;
-    for (int i; input[i] && isDigit; i++) {
+    for (int i = 0; input[i] && isDigit; i++) {
         isDigit = isdigit(input[i]);
     }
 
+    // Checks f input is a Number and is Valid
     int intInput = atoi(input);
     if (isDigit && 0 < intInput && intInput <= noOptions) {
         return options[intInput-1];
@@ -227,6 +229,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
     for (int j=0; input[j]; j++) {
         input[j] = tolower(input[j]);
     }
+
 
     // Repeat Menu until Valid Input
     for (int i=0; i<noOptions; i++) {
