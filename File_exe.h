@@ -111,7 +111,7 @@ void clearTerminal()
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
-char* displayMenu(char* header, char* options[], int noOptions) 
+int displayMenu(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
     int maxLength = strlen(header);
@@ -222,7 +222,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
     // Checks f input is a Number and is Valid
     int intInput = atoi(input);
     if (isDigit && 0 < intInput && intInput <= noOptions) {
-        return options[intInput-1];
+        return intInput;
     }
 
     // Lowercase the input string
@@ -242,7 +242,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
 
         // Compare the strings
         if (!strncmp(input, option, bufferLength)) {
-            return options[i];
+            return i+1;
         }
     }
 
@@ -251,7 +251,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
     printf("INPUT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.");
     sleep(5);
     clearTerminal();
-    displayMenu(header, options, noOptions);
+    return displayMenu(header, options, noOptions);
 }
 
 /* This function frees the memory allocated for the dataContainer2D struct.
