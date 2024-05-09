@@ -9,7 +9,7 @@ int main()
     clearTerminal();
     output = displayMenu(header, options, 2);
 
-    if (strcmp(output, options[0]) == 0)
+    if (!strncmp(output, options[0], 255))
     {
         char* header2 = "HOW CAN I HELP TODAY";
         char* options2[] = {"Option1", "Option2", "Option3", "Option4"};
@@ -18,15 +18,16 @@ int main()
         clearTerminal();
         output2 = displayMenu(header, options2, 4);
         printf(output2);
+
     }
-    else  (strcmp(output, options[1]));
+    else if (!strncmp(output, options[1], 255))
     {
         char* header3 = "SELEKT YOUR ROLE";
         char* options4[] = {"Doctor", "Nurse", "Admin"};
         char* output3;
-
+        
         clearTerminal();
         output3 = displayMenu(header3, options4, 3);
+        printf(output3);
     }
-    
-}   
+}
