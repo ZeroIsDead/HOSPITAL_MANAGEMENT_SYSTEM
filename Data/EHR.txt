@@ -1,1 +1,1 @@
-ReportID;CaseName;Allergies;PastProcedures;Comments;MedicineID;Prescription Note;UserID;DoctorID;NurseID;AppointmentID;
+ReportID;CaseName;Allergies;PastProcedures;Comments;MedicineID;Prescription Note;PatientUserID;DoctorID;NurseID;AppointmentID;

@@ -108,6 +108,36 @@ void clearTerminal()
     printf("\e[1;1H\e[2J");
 }
 
+char* getString(char* prompt) {
+    int bufferLength = 256;
+    char buffer[bufferLength];
+
+    printf(prompt);
+    fgets(buffer, bufferLength, stdin);
+
+    return buffer;
+}
+
+int getInt(char* prompt) {
+    int bufferLength = 256;
+    char buffer[bufferLength];
+
+    printf(prompt);
+    fgets(buffer, bufferLength, stdin);
+
+    // Decides if string is a Number
+    int isDigit = 1;
+    for (int i = 0; buffer[i] && isDigit; i++) {
+        isDigit = isdigit(buffer[i]);
+    }
+
+    if (isDigit) {
+        return atoi(buffer);
+    }
+
+    return -1;
+}
+
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
@@ -115,7 +145,6 @@ int displayMenu(char* header, char* options[], int noOptions)
 {
     // get max sizeof option string
     int maxLength = strlen(header);
-    int stringLengths[noOptions];
     char* modifiedOptions[noOptions];
 
     for (int i=0; i<noOptions; i++) {
@@ -128,7 +157,6 @@ int displayMenu(char* header, char* options[], int noOptions)
 
         // get length
         int currentLength = strlen(modifiedOptions[i]);
-        stringLengths[i] = currentLength;
     
         if (currentLength > maxLength) {
             maxLength = currentLength;
