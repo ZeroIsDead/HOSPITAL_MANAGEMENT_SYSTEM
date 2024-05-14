@@ -115,7 +115,10 @@ char* getString(char* prompt) {
     printf(prompt);
     fgets(buffer, bufferLength, stdin);
 
-    return buffer;
+    // Remove New Line
+    buffer[strcspn(buffer, "\n")] = 0;
+
+    return strdup(buffer);
 }
 
 int getInt(char* prompt) {
@@ -124,6 +127,8 @@ int getInt(char* prompt) {
 
     printf(prompt);
     fgets(buffer, bufferLength, stdin);
+
+    buffer[strcspn(buffer, "\n")] = 0;
 
     // Decides if string is a Number
     int isDigit = 1;
@@ -586,8 +591,8 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
             break;
         }
     }
-
-    // Fail to find
+        
+            // Fail to find
     if (fieldColumn == -1) 
     {
         freeMalloc2D(data);
@@ -595,11 +600,12 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
         return returnedValue;
     }
 
+
     // Get all Data In the Specified Field Column
     char** fieldData = malloc (data.y * sizeof(char*));
 
-    for (int i=0; i<data.y; i++) 
-    {
+
+    for (int i=0; i<data.y; i++) {
         fieldData[i] = strdup(data.data[i][fieldColumn]);
     }
 
@@ -609,10 +615,11 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     // Get the Data Records With the Key
     for (int i=0; i<data.y; i++) 
     {
-        if (!strncmp(fieldData[i], key, 255)) 
-        { // Compare Strings
-            buffer[count++] = data.data[i];
+        if (!strncmp(fieldData[i], key, 255)) // Compare Strings
+        { 
+            buffer[count++] = data.data[i]; 
         }
+        
     }
 
     char*** returnedData = malloc (count * sizeof(char**));
