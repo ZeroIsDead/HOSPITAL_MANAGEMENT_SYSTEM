@@ -17,7 +17,7 @@ int main()
 
         clearTerminal();
         output2 = displayMenu(header, options2, 4);
-        printf(output2);
+        printf(output2);2
 
     }
     else if (!strncmp(output, options[1], 255))
@@ -29,5 +29,22 @@ int main()
         clearTerminal();
         output3 = displayMenu(header3, options4, 3);
         printf(output3);
+        if (!strncmp(output, options4[0], 255))
+        {
+            printf("Doctor");
+            //doctor() starts here
+        }
+        else if (!strncmp(output, options4[1], 255))
+        {
+            printf("Nurse");
+            //nurse() starts here
+        }
+        else if (!strncmp(output, options4[2], 255))
+        {
+            printf("Admin");
+            //admin() starts here
+        }
+        
+        
     }
 }
