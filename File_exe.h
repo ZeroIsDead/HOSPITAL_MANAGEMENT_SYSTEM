@@ -108,14 +108,48 @@ void clearTerminal()
     printf("\e[1;1H\e[2J");
 }
 
+char* getString(char* prompt) {
+    int bufferLength = 256;
+    char buffer[bufferLength];
+
+    printf(prompt);
+    fgets(buffer, bufferLength, stdin);
+
+    // Remove New Line
+    buffer[strcspn(buffer, "\n")] = 0;
+
+    return strdup(buffer);
+}
+
+int getInt(char* prompt) {
+    int bufferLength = 256;
+    char buffer[bufferLength];
+
+    printf(prompt);
+    fgets(buffer, bufferLength, stdin);
+
+    buffer[strcspn(buffer, "\n")] = 0;
+
+    // Decides if string is a Number
+    int isDigit = 1;
+    for (int i = 0; buffer[i] && isDigit; i++) {
+        isDigit = isdigit(buffer[i]);
+    }
+
+    if (isDigit) {
+        return atoi(buffer);
+    }
+
+    return -1;
+}
+
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
-char* displayMenu(char* header, char* options[], int noOptions) 
+int displayMenu(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
     int maxLength = strlen(header);
-    int stringLengths[noOptions];
     char* modifiedOptions[noOptions];
 
     for (int i=0; i<noOptions; i++) {
@@ -128,7 +162,6 @@ char* displayMenu(char* header, char* options[], int noOptions)
 
         // get length
         int currentLength = strlen(modifiedOptions[i]);
-        stringLengths[i] = currentLength;
     
         if (currentLength > maxLength) {
             maxLength = currentLength;
@@ -222,7 +255,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
     // Checks f input is a Number and is Valid
     int intInput = atoi(input);
     if (isDigit && 0 < intInput && intInput <= noOptions) {
-        return options[intInput-1];
+        return intInput;
     }
 
     // Lowercase the input string
@@ -242,7 +275,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
 
         // Compare the strings
         if (!strncmp(input, option, bufferLength)) {
-            return options[i];
+            return i+1;
         }
     }
 
@@ -251,7 +284,7 @@ char* displayMenu(char* header, char* options[], int noOptions)
     printf("INSERT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.");
     sleep(5);
     clearTerminal();
-    displayMenu(header, options, noOptions);
+    return displayMenu(header, options, noOptions);
 }
 
 /* This function frees the memory allocated for the dataContainer2D struct.
@@ -558,8 +591,8 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
             break;
         }
     }
-
-    // Fail to find
+        
+            // Fail to find
     if (fieldColumn == -1) 
     {
         freeMalloc2D(data);
@@ -567,11 +600,12 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
         return returnedValue;
     }
 
+
     // Get all Data In the Specified Field Column
     char** fieldData = malloc (data.y * sizeof(char*));
 
-    for (int i=0; i<data.y; i++) 
-    {
+
+    for (int i=0; i<data.y; i++) {
         fieldData[i] = strdup(data.data[i][fieldColumn]);
     }
 
@@ -581,10 +615,11 @@ struct dataContainer2D queryFieldStrict(const char* filename, char* field, char*
     // Get the Data Records With the Key
     for (int i=0; i<data.y; i++) 
     {
-        if (!strncmp(fieldData[i], key, 255)) 
-        { // Compare Strings
-            buffer[count++] = data.data[i];
+        if (!strncmp(fieldData[i], key, 255)) // Compare Strings
+        { 
+            buffer[count++] = data.data[i]; 
         }
+        
     }
 
     char*** returnedData = malloc (count * sizeof(char**));
