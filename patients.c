@@ -1,12 +1,5 @@
 #include "File_exe.h"
 
-void displaySystemMessage(char* message, int waitTime) {
-    clearTerminal();
-    printf(message);
-    sleep(waitTime);
-    clearTerminal();
-}
-
 char* getUserID(char* username) {
     struct dataContainer2D users = queryFieldStrict("Patient_IDs", "PatientUserID", username);
 

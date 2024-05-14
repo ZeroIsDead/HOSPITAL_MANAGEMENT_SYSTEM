@@ -143,6 +143,13 @@ int getInt(char* prompt) {
     return -1;
 }
 
+void displaySystemMessage(char* message, int waitTime) {
+    clearTerminal();
+    printf(message);
+    sleep(waitTime);
+    clearTerminal();
+}
+
 /*char* options[] = {"ar", "a", "b", "C"};
 
     displayMenu("GOD", options, 4);*/
