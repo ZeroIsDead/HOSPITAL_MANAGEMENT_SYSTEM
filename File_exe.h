@@ -294,7 +294,9 @@ int displayMenu(char* header, char* options[], int noOptions)
     return displayMenu(header, options, noOptions);
 }
 
-/* struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
+/* This function display your data in a table form.
+
+struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
         
     displayTabulatedData(d_appointments);
     freeMalloc2D(d_appointments);*/
