@@ -1,7 +1,8 @@
 #include "File_exe.h"
 
+char* NurseName;
 
-char* message(char name []){ 
+char* NurseWelcomeMessage(char name []){ 
     
     int welcomeSize = 8 + strlen(name) + 1;
     char welcome[welcomeSize];
@@ -15,15 +16,23 @@ char* message(char name []){
     
 }
 
-void DoctorSchedule(){
-    printf("This is the Doctor Schedule Menue");
+void NurseDoctorSchedule(){
+    char* header = "Doctor Schedule";
+    char* option[] = {"Option 1", "Option 2", "Back"};
+    int output = displayMenu(header, option, 3);
+    
+    clearTerminal();
+
+    if (output == 3){
+        NurseMenue(NurseName);
+    }
 }
 
-void Inventory(){
+void NurseInventory(){
     printf("This is the Inventory Menue");
 }
 
-void Report(){
+void NurseReport(){
     printf("This is the Report Menue");
 }
 
@@ -33,9 +42,11 @@ void Report(){
  function will return a string pointer
  
  char* name = Login(); */ 
- 
-char* Login(){
 
+char* NurseLogin(){
+    
+    displaySystemMessage("Opening Nurse Log in Portal",5);
+    
     char* userName = getString("Enter Your UserName: ");
     struct dataContainer1D userNameCheck = queryKey("Staff_IDs", userName);
     
@@ -65,19 +76,29 @@ char* Login(){
     
 }
 
-int main(){
-    char* name = Login();
-    clearTerminal();
-    char* header = message(name);
+int NurseMenue(char* name){
+
+    char* header = NurseWelcomeMessage(name);
     char* options[] = {"Doctor Schedules","Inventory","Report","Log Out"};
 
-    int output = displayMenu(header, options, 3);
+    int output = displayMenu(header, options, 4);
+    clearTerminal();
     
     if (output == 1){
-        DoctorSchedule();
+        NurseDoctorSchedule();
     }else if (output == 2){
-        Inventory();
+        NurseInventory();
     }else if(output == 3){
-        Report();
+        NurseReport();
+    }else{
+        main();
+        return 0;
     }
+}
+
+int main(){
+    NurseName= NurseLogin();
+    clearTerminal();
+    
+    NurseMenue(NurseName);
 }
