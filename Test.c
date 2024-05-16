@@ -6,50 +6,34 @@
 
 #define MAX_LINE_LENGTH 256
 
+struct dataBuffer2D 
+{
+    int error; // 1 - error | 0 - fine
+    char** fields; // an array containing the fields
+    char*** data; // a 2D array containing each line of data
+    int y; //y - number of rows / lines / arrays in the 2D array
+    int x; //x - number of columns / elements in each array
+};
+
 int main()
-{   
-    char UserID[MAX_LINE_LENGTH];
-    char UserPW[MAX_LINE_LENGTH];
-    
-    printf("Enter UserID: ");
-    scanf("%s", UserID);
-    
-    //CONTINUE PW CHECK
-    
-    // fgets(UserID, sizeof(UserID), stdin);
-    // UserID[strcspn(UserID, "\n")] = '\0';
+{      
+    char* d_menu = "Doctor";
+    char* d_choices[] = {"My Schedule", "Staff Login"};
+    int d_output; 
 
+    char* doctor_username = getString("Enter your username: ");
+    
+    struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
 
-    struct dataContainer1D data = queryKey("users", UserID);
+    printf("No of rows: %d\n", d_appointments.y);
+    printf("No of columns: %d", d_appointments.x);
 
- 
-    if (data.error == 0 )
+    for (int i=0; i<d_appointments.x + 1; i++) 
     {
-        for (int i = 0; i < data.x; i++)
+        for (int j=0; j<d_appointments.y + 1; j++) 
         {
-            int j = i + 1;
-            printf("%d. %s\n",j, data.data[i]);
-        }   
-
-        printf("Enter UserPW: ");
-        scanf("%s", UserPW);
-
-        data.data[1] = UserPW;
-
-        updateData("users", data.data);
-
-        struct dataContainer1D data2 = queryKey("users", UserID);
-
-        for (int i = 0; i < data2.x; i++)
-        {
-            int j = i + 1;
-            printf("%d. %s\n",j, data2.data[i]);
-        }    
-    }
-    else
-    {
-        printf("User not found\n");
-    }
-   
+            //printf("%s\n", d_appointments.data[j][i]);
+        }
+    }  
  
 }
