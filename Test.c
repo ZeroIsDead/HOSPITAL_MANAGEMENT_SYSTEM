@@ -1,8 +1,5 @@
 #include "File_exe.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 
 #define MAX_LINE_LENGTH 256
 
@@ -22,17 +19,31 @@ int main()
     int d_output; 
 
     char* doctor_username = getString("Enter your username: ");
-    
+
     struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
+
+    struct dataBuffer2D container;
+
+    for (int i=0; i<d_appointments.y + 1; i++) 
+    {
+        for (int j=0; j<d_appointments.x + 1; j++) 
+        {
+            container.data[i][j+1]= d_appointments.data[i][j];
+        }
+    }
 
     printf("No of rows: %d\n", d_appointments.y);
     printf("No of columns: %d", d_appointments.x);
 
-    for (int i=0; i<d_appointments.x + 1; i++) 
+    d_appointments.data[0][0] = "Hello";
+    
+    printf("%s\n",d_appointments.data[0][0]);
+
+    for (int i=0; i<d_appointments.y + 1; i++) 
     {
-        for (int j=0; j<d_appointments.y + 1; j++) 
+        for (int j=0; j<d_appointments.x + 1; j++) 
         {
-            //printf("%s\n", d_appointments.data[j][i]);
+            printf("%s\n", d_appointments.data[i][j]);
         }
     }  
  

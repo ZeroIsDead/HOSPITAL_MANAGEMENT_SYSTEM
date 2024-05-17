@@ -147,16 +147,14 @@ void displayTabulatedData1(struct dataContainer2D data)
  *
  * This function displays the doctor's menu. The menu consists of two options: "My Schedule" and "Staff Login". The function returns an integer value indicating the user's choice.
  */
-int doctor() 
+int doctor(char* doctor_username) 
 {
     char* d_menu = "Doctor";
-    char* d_choices[] = {"My Schedule", "Staff Login"};
+    char* d_choices[] = {"My Schedule", "EHR access", "My Reports"};
     int d_output; 
-
-    char* doctor_username = getString("Enter your username: ");
-
+    
     clearTerminal();
-    d_output = displayMenu(d_menu,d_choices,2);
+    d_output = displayMenu(d_menu,d_choices,3);
 
     if(d_output ==1 )
     {
@@ -168,11 +166,23 @@ int doctor()
 
         // Display the appointments in a tabulated format
         displayTabulatedData1(d_appointments);
+        printf("\nDo you want to append your scehedule?");
 
-    }   
+    }
+    else if (d_output == 2)
+    {
+        printf("\nEHR access");
+    }
+    else if (d_output == 3)
+    {
+        printf("\nMy Reports");
+    }
+    
 }
 
 int main() 
-{
-    doctor();
+{   
+    clearTerminal();
+    char* d_username = getString("Enter your username: ");
+    doctor(d_username);
 }
