@@ -1,5 +1,4 @@
 ReportID;CaseName;Allergies;PastProcedures;Comments;MedicineID;Prescription Note;PatientUserID;DoctorID;NurseID;AppointmentID;
-ReportID;CaseName;Allergies;PastProcedures;Comments;MedicineID;Prescription Note;PatientUserID;DoctorID;NurseID;AppointmentID;
 rep001;Checkup;None;Appendectomy;Patient is recovering well.;med001;Take one tablet daily with food.;patBrown;adminClark;nurseBrown;apt001;
 rep002;Fever;Penicillin;None;Patient has a mild fever.;med002;Take two tablets every 6 hours as needed for fever.;patSmith;drMiller;nurseAnderson;apt002;
 rep003;Headache;Aspirin;None;Patient complains of persistent headaches.;med003;Take one tablet every 4 hours as needed for headache relief.;patGarcia;staffGarcia;nurseWilson;apt003;
