@@ -132,6 +132,53 @@ void displayTabulatedData1(struct dataContainer2D data)
     free(displayedStrings);
 }
 
+char* getValidUsername()
+{
+    char* username;
+    struct dataContainer1D userData;
+    int valid = 0;
+
+    do 
+    {
+        clearTerminal();
+        username = getString("Enter your username: ");
+        userData = queryKey("Staff_IDs", username);
+
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
+        {
+            displaySystemMessage("Username not found!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    int valid2 = 0;
+
+    do
+    {
+        char* user_pw = getString("Enter your password: ");
+
+        if (!strcmp(user_pw, userData.data[1]))
+        {
+            valid2 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Wrong password, please try again!", 2);
+        }
+    }
+    while (!valid2);
+    
+    displaySystemMessage("Login successful!", 2);
+
+    freeMalloc1D(userData);
+
+    return username;
+}
+
 void EHR_access(char* doctor_username)
 {
     struct dataContainer2D records = queryFieldStrict("EHR", "DoctorID", doctor_username);
@@ -198,16 +245,20 @@ int my_schedule(char* doctor_username)
     }
 }
 
-int doctor(char* doctor_username) 
-{
-    
-    
-    char* d_menu = "Doctor";
+int doctor() 
+{   
+    char* doctor_username = getValidUsername();
+
+    //cooking infomation for menu
+    struct dataContainer1D userData = queryKey("Staff_IDs", doctor_username);
+
+    char d_menu[sizeof(userData.data[2])];
+    sprintf(d_menu, "Hi, %s", userData.data[2]);
     char* d_choices[] = {"My Schedule", "EHR access", "My Reports", "Logout"};
     int noOptions = 4;
-
+        
     while (1) 
-    {    
+    {  
         clearTerminal();
         int d_output = displayMenu(d_menu, d_choices, noOptions);
 
@@ -236,8 +287,6 @@ int doctor(char* doctor_username)
 }
 
 int main() 
-{   
-    clearTerminal();
-    char* d_username = getString("Enter your username: ");
-    doctor(d_username);
+{  
+    doctor();
 }

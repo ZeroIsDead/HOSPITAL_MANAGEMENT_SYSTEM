@@ -3,49 +3,58 @@
 
 #define MAX_LINE_LENGTH 256
 
-int main() 
+char* getValidUsername()
 {
-    char* doctor_username = getString("Enter your username: ");
+    char* doctor_username;
+    struct dataContainer1D userData;
+    int valid = 0;
 
-    struct dataContainer2D d_appointments = queryFieldStrict("EHR", "DoctorID", doctor_username);
-
-    struct dataContainer2D container;
-
-    container.x = d_appointments.x + 1;
-    container.y = d_appointments.y;
-
-    // allocate memory for fields
-    container.fields = malloc(container.x * sizeof(char*));
-
-    container.fields[0] = "No.";
-
-    // copy fields from d_appointments to container
-    for (int i = 0; i < d_appointments.x; i++)
+    do 
     {
-        container.fields[i+1] = strdup(d_appointments.fields[i]);
-    }
+        clearTerminal();
+        doctor_username = getString("Enter your username: ");
+        userData = queryKey("Staff_IDs", doctor_username);
 
-    container.data = malloc(d_appointments.y * sizeof(char**));
-    for (int i = 0; i < d_appointments.y; i++) //for every rows
-    {
-        container.data[i] = malloc(container.x * sizeof(char*));
-
-        char numStr[3];
-        sprintf(numStr, "%d", i+1);
-        container.data[i][0] = strdup(numStr);
-
-        for (int j = 0; j < d_appointments.x; j++)
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
         {
-            container.data[i][j+1] = strdup(d_appointments.data[i][j]);
+            displaySystemMessage("Username not found!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    int valid2 = 0;
+
+    do
+    {
+        char* doctor_pw = getString("Enter your password: ");
+
+        if (!strcmp(doctor_pw, userData.data[1]))
+        {
+            valid2 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Wrong password, please try again!", 2);
         }
     }
+    while (!valid2);
+    
+    displaySystemMessage("Login successful!", 2);
+
+    freeMalloc1D(userData);
+
+    return doctor_username;
+}
 
 
-    /////////////PRINTING/////////////////////
+int main() 
+{   
 
-    displayTabulatedData(container);
+    char* doctor_username = getValidUsername();
+    printf("Hi, %s", doctor_username);
 
-    ///////////////////FREE MEMORY/////////////////////
-    freeMalloc2D(d_appointments);
-    freeMalloc2D(container);
 }

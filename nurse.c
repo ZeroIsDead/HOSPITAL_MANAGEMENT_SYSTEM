@@ -55,7 +55,8 @@ char* NurseLogin(){
     }
 
     while (userNameCheck.error == 1 || strcmp(userNameCheck.data[3],"Nurse")){
-        if (userNameCheck.error == 1){
+        if (userNameCheck.error == 1)
+        {
             displaySystemMessage("Invalid UserName",3);
         }else{
             displaySystemMessage("User is not a Nurse",3);
