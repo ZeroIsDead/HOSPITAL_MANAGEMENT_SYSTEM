@@ -1,39 +1,38 @@
 #include "File_exe.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
 
 #define MAX_LINE_LENGTH 256
+void NurseBack(){
 
-struct dataBuffer2D 
-{
-    int error; // 1 - error | 0 - fine
-    char** fields; // an array containing the fields
-    char*** data; // a 2D array containing each line of data
-    int y; //y - number of rows / lines / arrays in the 2D array
-    int x; //x - number of columns / elements in each array
-};
+    int back = 1;
+    back = getInt("\nPlease Enter 0 to go back");
 
-int main()
-{      
-    char* d_menu = "Doctor";
-    char* d_choices[] = {"My Schedule", "Staff Login"};
-    int d_output; 
+    if (back != 0 ){
+        displaySystemMessage("Please enter the corrent input!: ",2);
+        NurseBack();
+        return;
+    }
+    else{
+        return;
+    }
+}
+   
 
-    char* doctor_username = getString("Enter your username: ");
-    
-    struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
 
-    printf("No of rows: %d\n", d_appointments.y);
-    printf("No of columns: %d", d_appointments.x);
 
-    for (int i=0; i<d_appointments.x + 1; i++) 
-    {
-        for (int j=0; j<d_appointments.y + 1; j++) 
-        {
-            //printf("%s\n", d_appointments.data[j][i]);
-        }
-    }  
- 
+
+int main(){
+    char* docName = getString("Please enter the Name of the Doctor: ");
+    struct dataContainer1D docSchedule = queryKey("Staff_IDs", docName);
+        
+    while (docSchedule.error == 1){
+        displaySystemMessage("Error!!",2);
+        docName = getString("Please enter the Name of the Doctor: ");
+        docSchedule = queryKey("Staff_IDs", docName);
+    }
+    docSchedule.data[3][6] = '\0';
+    for (int i = 0; i < docSchedule.x; i++){
+        printf("%s ", docSchedule.data[i]);
+    }
+    NurseBack();
 }

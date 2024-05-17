@@ -2,6 +2,25 @@
 
 char* NurseName;
 
+void NurseBack(){
+
+    int back = 1;
+    back = getInt("\nPlease Enter 0 to go back");
+
+    if (back != 0 ){
+
+        displaySystemMessage("Please enter the corrent input!: ",2);
+        
+        NurseBack();
+        return;
+    }
+    else{
+     
+        return;
+    
+    }
+}
+
 char* NurseWelcomeMessage(char name []){ 
     
     int welcomeSize = 8 + strlen(name) + 1;
@@ -16,25 +35,6 @@ char* NurseWelcomeMessage(char name []){
     
 }
 
-void NurseDoctorSchedule(){
-    char* header = "Doctor Schedule";
-    char* option[] = {"Option 1", "Option 2", "Back"};
-    int output = displayMenu(header, option, 3);
-    
-    clearTerminal();
-
-    if (output == 3){
-        NurseMenue(NurseName);
-    }
-}
-
-void NurseInventory(){
-    printf("This is the Inventory Menue");
-}
-
-void NurseReport(){
-    printf("This is the Report Menue");
-}
 
 /* Copy Paste this Function, Change "Nurse" to tag you want to search "Admin" "Doctor", also change index of '\0'
  userNameCheck.data[3][5] = '\0' (for Admin)
@@ -45,7 +45,7 @@ void NurseReport(){
 
 char* NurseLogin(){
     
-    displaySystemMessage("Opening Nurse Log in Portal",5);
+    displaySystemMessage("Opening Nurse Log in Portal",2);
     
     char* userName = getString("Enter Your UserName: ");
     struct dataContainer1D userNameCheck = queryKey("Staff_IDs", userName);
@@ -76,23 +76,100 @@ char* NurseLogin(){
     
 }
 
-int NurseMenue(char* name){
+void NCurrentDoctorSchedules(){
+    
+    // Display Doctor Schedule Menu
+    char* option[] = {"All Doctor Schedule", "Specific Doctro Schedule", "Back"};
+    int output = displayMenu("Doctor Schedule", option ,3);
+    //Display All Doctor Schedule
+    if (output == 1){
+        clearTerminal();
+        
+        struct dataContainer2D allDocSchedule = queryFieldStrict("Staff_IDs","Tags","Doctor");
+        displayTabulatedData(allDocSchedule);
+        
+        printf("\n");
+        
+        NurseBack();
+        NCurrentDoctorSchedules();
+        return;
+    }
+
+    // Searching and Displaying Specific Doctor Schedule
+    else if (output == 2){
+        char* docName = getString("Please enter the Name of the Doctor: ");
+        struct dataContainer1D docSchedule = queryKey("Staff_IDs", docName);
+            
+        while (docSchedule.error == 1){
+            displaySystemMessage("Error!!",2);
+            docName = getString("Please enter the Name of the Doctor: ");
+            docSchedule = queryKey("Staff_IDs", docName);
+        }
+        docSchedule.data[3][6] = '\0';
+        
+        for (int i = 0; i < docSchedule.x; i++){
+            printf("%s, ", docSchedule.data[i]);
+        }
+        
+        NurseBack();
+        NCurrentDoctorSchedules();
+        return;
+    }
+
+    // Returning to the Nurse Menu
+    else{
+
+        NurseMenue(NurseName);
+        return;
+    }
+}
+void NAvailableDoctor(){
+    printf("Available Doctor\n");
+}
+void NViewStationInventory(){
+    printf("View Station Inventory\n");
+}
+
+void NUpdateStationInventory(){
+    printf("Update Station Inventory\n");
+}
+
+void NViewPatientReport(){
+    printf("View Patient Report\n");
+}
+
+void NViewUnitReport(){
+    printf("View Unit Report\n");
+}
+
+void NurseMenue(char* name){
 
     char* header = NurseWelcomeMessage(name);
-    char* options[] = {"Doctor Schedules","Inventory","Report","Log Out"};
+    char* options[] = {"Current Doctor Schedules","Available Doctor","View Station Inventory","Update Station Inventory","View Patient Report","View Unit Report","Log Out"};
 
-    int output = displayMenu(header, options, 4);
+    int output = displayMenu(header, options, 7);
     clearTerminal();
     
     if (output == 1){
-        NurseDoctorSchedule();
+        NCurrentDoctorSchedules();
+        return;
     }else if (output == 2){
-        NurseInventory();
+        NAvailableDoctor();
     }else if(output == 3){
-        NurseReport();
-    }else{
+        NViewStationInventory();
+    }
+    else if(output == 4){
+        NUpdateStationInventory();
+    }
+    else if (output == 5){
+        NViewPatientReport();
+    }
+    else if (output == 6){
+       NViewUnitReport();
+    }
+    else{
         main();
-        return 0;
+        return;
     }
 }
 
