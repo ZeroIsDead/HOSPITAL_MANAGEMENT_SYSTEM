@@ -30,7 +30,6 @@ void displayAppointments(char* userID) {
     clearTerminal();
     displayTabulatedData(appointments);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(appointments);
 }
@@ -106,7 +105,7 @@ void rescheduleAppointmentsMenu(char* userID) {
 
         char* certain = getString("Are you Certain (Y|N)? ");
 
-        if (!strncmp(certain, "Y", 1)) {
+        if (tolower(certain[0]) == 'y') {
             chosenAppointment.data[4] = strdup(newTimeSlot);
 
             updateData("Appointments", chosenAppointment.data);
@@ -165,7 +164,9 @@ void cancelAppointmentsMenu(char* userID) {
 
         char* certain = getString("Are you Certain (Y|N)? ");
 
-        if (!strncmp(certain, "YES", sizeof(certain))) {
+
+        if (tolower(certain[0]) == 'y') {
+            deleteKey("Appointments", option);
             displaySystemMessage("Appointment Successfully Canceled...", 2);
         }
     }
@@ -211,7 +212,6 @@ void displayEHR(char* userID) {
     clearTerminal();
     displayTabulatedData(records);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(records);
 }
@@ -232,7 +232,6 @@ void displayBills(char* userID) {
     clearTerminal();
     displayTabulatedData(bills);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(bills);
 }
@@ -240,7 +239,7 @@ void displayBills(char* userID) {
 void searchBills(char* userID) {
     char* billID = getString("Enter Bill ID: ");
 
-    struct dataContainer2D bills = queryFieldStrict("Bills", "BillID", billID);
+    struct dataContainer2D bills = queryFieldStrict("Bills", "BillsID", billID);
 
     if (bills.error) {
         displaySystemMessage("Unable to Access Bills...", 3);
@@ -255,7 +254,6 @@ void searchBills(char* userID) {
     clearTerminal();
     displayTabulatedData(bills);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(bills);
 }
@@ -314,7 +312,7 @@ int loginPatient(char username[], char password[]) {
     }
 
     freeMalloc2D(userData);
-    // displaySystemMessage("Incorrect Password", 5);
+    displaySystemMessage("Incorrect Password", 2);
     return 1;
 }
 

@@ -397,6 +397,8 @@ void displayTabulatedData(struct dataContainer2D data) {
         }
     }
 
+    printf("\n");
+
     free(displayedStrings);
 }
 
@@ -765,7 +767,7 @@ int writeData(const char* filename, struct dataContainer2D array)
 {
     FILE* filePointer = filecheck(filename, "w");
     
-    char line[array.x * 2 + 1]; 
+    char line[256]; 
     
     /*Field names*/
     line[0] = '\0'; // Initialize the line buffer
