@@ -13,105 +13,105 @@ char* getUserID(char* username) {
     return userID;
 }
 
-void displayTabulatedData(struct dataContainer2D data) {
-    const int minPadding = 5;
-    int numRow = data.y + 1;
-    char** displayedStrings = malloc (numRow * sizeof(char*));
+// void displayTabulatedData(struct dataContainer2D data) {
+//     const int minPadding = 5;
+//     int numRow = data.y + 1;
+//     char** displayedStrings = malloc (numRow * sizeof(char*));
 
-    // Find Max Column Lengths
-    int columnLengths[data.x];
+//     // Find Max Column Lengths
+//     int columnLengths[data.x];
 
-    for (int i=0; i<data.x; i++) {
-        int columnLength = strlen(data.fields[i]);
+//     for (int i=0; i<data.x; i++) {
+//         int columnLength = strlen(data.fields[i]);
 
-        for (int j=0; j<data.y; j++) {
-            int currentLength = strlen(data.data[j][i]);
+//         for (int j=0; j<data.y; j++) {
+//             int currentLength = strlen(data.data[j][i]);
 
-            if (currentLength > columnLength) {
-                columnLength = currentLength;
-            }
-        }
+//             if (currentLength > columnLength) {
+//                 columnLength = currentLength;
+//             }
+//         }
 
-        columnLengths[i] = columnLength;
-    }
+//         columnLengths[i] = columnLength;
+//     }
 
-    int bufferLength = 256;
-    char stringBuffer[bufferLength];
+//     int bufferLength = 256;
+//     char stringBuffer[bufferLength];
 
-    // Clear String;
-    stringBuffer[0] = '\0';
+//     // Clear String;
+//     stringBuffer[0] = '\0';
 
-    // Format the Field Strings
-    for (int i=0; i<data.x; i++) {
-        int totalPadding = columnLengths[i] - strlen(data.fields[i]) + minPadding;
+//     // Format the Field Strings
+//     for (int i=0; i<data.x; i++) {
+//         int totalPadding = columnLengths[i] - strlen(data.fields[i]) + minPadding;
 
-        int leftPadding = floor(totalPadding/2);
+//         int leftPadding = floor(totalPadding/2);
         
-        for (int n=0; n<leftPadding; n++) {
-            strncat(stringBuffer, " ", 2);
-        } 
+//         for (int n=0; n<leftPadding; n++) {
+//             strncat(stringBuffer, " ", 2);
+//         } 
 
-        strncat(stringBuffer, data.fields[i], strlen(data.fields[i]));
+//         strncat(stringBuffer, data.fields[i], strlen(data.fields[i]));
 
-        int rightPadding = totalPadding - leftPadding;
+//         int rightPadding = totalPadding - leftPadding;
 
-        for (int n=0; n<rightPadding; n++) {
-            strncat(stringBuffer, " ", 2);
-        } 
+//         for (int n=0; n<rightPadding; n++) {
+//             strncat(stringBuffer, " ", 2);
+//         } 
 
-        strncat(stringBuffer, "|", 2);
-    }
+//         strncat(stringBuffer, "|", 2);
+//     }
 
-    displayedStrings[0] = strdup(stringBuffer);
+//     displayedStrings[0] = strdup(stringBuffer);
 
-    // Format the Strings
+//     // Format the Strings
 
-    for (int i=0; i<data.y; i++) {
-        stringBuffer[0] = '\0';
+//     for (int i=0; i<data.y; i++) {
+//         stringBuffer[0] = '\0';
 
-        // Create String
-        for (int j=0; j<data.x; j++) {
-            int totalPadding = columnLengths[j] - strlen(data.data[i][j]) + minPadding;
+//         // Create String
+//         for (int j=0; j<data.x; j++) {
+//             int totalPadding = columnLengths[j] - strlen(data.data[i][j]) + minPadding;
 
-            // Left Padding
-            int leftPadding = floor(totalPadding/2);
+//             // Left Padding
+//             int leftPadding = floor(totalPadding/2);
             
-            for (int n=0; n<leftPadding; n++) {
-                strncat(stringBuffer, " ", 2);
-            } 
+//             for (int n=0; n<leftPadding; n++) {
+//                 strncat(stringBuffer, " ", 2);
+//             } 
 
-            strncat(stringBuffer, data.data[i][j], strlen(data.data[i][j]));
+//             strncat(stringBuffer, data.data[i][j], strlen(data.data[i][j]));
 
-            // Right Padding
-            int rightPadding = totalPadding - leftPadding;
+//             // Right Padding
+//             int rightPadding = totalPadding - leftPadding;
 
-            for (int n=0; n<rightPadding; n++) {
-                strncat(stringBuffer, " ", 2);
-            } 
+//             for (int n=0; n<rightPadding; n++) {
+//                 strncat(stringBuffer, " ", 2);
+//             } 
 
-            strncat(stringBuffer, "|", 2);
-        }
+//             strncat(stringBuffer, "|", 2);
+//         }
 
-        // Add String to Array
-        displayedStrings[i+1] = strdup(stringBuffer);
-    }
+//         // Add String to Array
+//         displayedStrings[i+1] = strdup(stringBuffer);
+//     }
 
-    int tableLength = strlen(displayedStrings[0]) + 1;
+//     int tableLength = strlen(displayedStrings[0]) + 1;
 
-    for (int i=0; i<tableLength; i++) {
-        printf("-");
-    }
+//     for (int i=0; i<tableLength; i++) {
+//         printf("-");
+//     }
 
-    for (int i=0; i<numRow; i++) {
-        printf("\n|%s\n", displayedStrings[i]);
+//     for (int i=0; i<numRow; i++) {
+//         printf("\n|%s\n", displayedStrings[i]);
         
-        for (int i=0; i<tableLength; i++) {
-            printf("-");
-        }
-    }
+//         for (int i=0; i<tableLength; i++) {
+//             printf("-");
+//         }
+//     }
 
-    free(displayedStrings);
-}
+//     free(displayedStrings);
+// }
 
 void displayAppointments(char* userID) {
     // AppointmentID;StaffUserID;PatientUserID;RoomNo;TimeSlots;ReportID;
@@ -130,7 +130,6 @@ void displayAppointments(char* userID) {
     clearTerminal();
     displayTabulatedData(appointments);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(appointments);
 }
@@ -206,7 +205,7 @@ void rescheduleAppointmentsMenu(char* userID) {
 
         char* certain = getString("Are you Certain (Y|N)? ");
 
-        if (!strncmp(certain, "Y", 1)) {
+        if (tolower(certain[0]) == 'y') {
             chosenAppointment.data[4] = strdup(newTimeSlot);
 
             updateData("Appointments", chosenAppointment.data);
@@ -265,7 +264,9 @@ void cancelAppointmentsMenu(char* userID) {
 
         char* certain = getString("Are you Certain (Y|N)? ");
 
-        if (!strncmp(certain, "YES", sizeof(certain))) {
+
+        if (tolower(certain[0]) == 'y') {
+            deleteKey("Appointments", option);
             displaySystemMessage("Appointment Successfully Canceled...", 2);
         }
     }
@@ -311,7 +312,6 @@ void displayEHR(char* userID) {
     clearTerminal();
     displayTabulatedData(records);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(records);
 }
@@ -332,7 +332,6 @@ void displayBills(char* userID) {
     clearTerminal();
     displayTabulatedData(bills);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(bills);
 }
@@ -340,7 +339,7 @@ void displayBills(char* userID) {
 void searchBills(char* userID) {
     char* billID = getString("Enter Bill ID: ");
 
-    struct dataContainer2D bills = queryFieldStrict("Bills", "BillID", billID);
+    struct dataContainer2D bills = queryFieldStrict("Bills", "BillsID", billID);
 
     if (bills.error) {
         displaySystemMessage("Unable to Access Bills...", 3);
@@ -355,7 +354,6 @@ void searchBills(char* userID) {
     clearTerminal();
     displayTabulatedData(bills);
 
-    printf("\n\n");
     getString("PRESS ENTER TO RETURN");
     freeMalloc2D(bills);
 }
@@ -414,7 +412,7 @@ int loginPatient(char username[], char password[]) {
     }
 
     freeMalloc2D(userData);
-    // displaySystemMessage("Incorrect Password", 5);
+    displaySystemMessage("Incorrect Password", 2);
     return 1;
 }
 
