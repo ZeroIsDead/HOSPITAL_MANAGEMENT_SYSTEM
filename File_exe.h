@@ -548,6 +548,11 @@ struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* fi
         }
     }
 
+    if (count == 0) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
     char*** table = malloc (count * sizeof(char**));
 
     for (int i=0; i<count; i++) {
@@ -603,6 +608,8 @@ struct dataContainer1D getFieldValues(struct dataContainer2D data, char* field) 
     returnedValue.x = data.y;
 
     char** fieldName = malloc (1 * sizeof(char*));
+
+    fieldName[0] = field;
 
     returnedValue.fields = fieldName;
 
