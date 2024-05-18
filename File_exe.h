@@ -521,7 +521,7 @@ struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* fi
     int wantedFieldIndex = -1;
 
     for (int i=0; i<data.x; i++) {
-        if (!strncmp(returnedValue.fields[i], field, 256)) {
+        if (!strncmp(data.fields[i], field, 256)) {
             wantedFieldIndex = i;
             break;
         }
@@ -538,12 +538,10 @@ struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* fi
         returnedValue.fields[i] = strdup(data.fields[i]);
     }
 
-
     int count = 0;
     char** pointerBuffer[data.y];
 
     for (int i=0; i<data.y; i++) {
-
         if (!strncmp(data.data[i][wantedFieldIndex], key, 256)) {
             pointerBuffer[count++] = data.data[i];
         }
