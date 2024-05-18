@@ -3,33 +3,6 @@
 //char date[11] = 2024-06-01;
 
 /////////////////////NOT MINE////////////////////////////////////////////
-char* getUserID() 
-{
-    char* username;
-    struct dataContainer2D userData;
-    int valid = 0;
-
-    do 
-    {
-        clearTerminal();
-        username = getString("Enter patient`s name: ");
-        userData = queryFieldStrict("Patient_IDs", "Name" ,username);
-
-        if (userData.error == 1)  // userData.error will be 1 if the username is not found
-        {
-             displaySystemMessage("Username not found!", 2);
-        }
-        else
-        {
-            valid = 1;
-        }
-
-    }while(!valid);
-
-    freeMalloc2D(userData);
-
-    return username;
-}
 
 void displayAllergies(char* userID) {
     struct dataContainer2D data = queryFieldStrict("allergies", "PatientUserID", userID);
@@ -214,7 +187,32 @@ void EHRMenu()
     }
 }
 
-//////////////////////////NOT MINE/////////////////////////////////////////
+//////////////////////////UTILITY/////////////////////////////////////////
+
+char* getUserID() 
+{
+    char* username;
+    struct dataContainer2D userData;
+    int valid = 0;
+
+    do 
+    {
+        username = getString("Enter patient`s name: ");
+        userData = queryFieldStrict("Patient_IDs", "Name" ,username);
+
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
+        {
+            displaySystemMessage("Username not found!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    } while (!valid);
+
+    return userData.data[0][0];
+}
 
 void displayTabulatedData1(struct dataContainer2D data)
 {   const int minPadding = 5;
@@ -393,6 +391,8 @@ char* getValidUsername()
     return username;
 }
 
+/////////////////////////PART OF MENU////////////////////////////
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
@@ -435,6 +435,11 @@ void allappointments(char* doctor_username)
     freeMalloc2D(d_appointments);
 }
 
+void search_Appointments()
+{
+
+}
+
 char* my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
@@ -452,7 +457,7 @@ char* my_schedule(char* doctor_username)
         }
         else if (d_output == 2)
         {   
-            /*Search Appointments*/
+            //search_Appointments();
             clearTerminal();
             char* search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
         }

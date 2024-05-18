@@ -512,7 +512,8 @@ struct dataContainer2D concatDataContainer(struct dataContainer2D data1, struct 
     return returnedValue;
 }
 
-struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* field, char* key) {
+struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* field, char* key) 
+{
     struct dataContainer2D returnedValue;
     returnedValue.error = 0;
     returnedValue.x = data.x;
