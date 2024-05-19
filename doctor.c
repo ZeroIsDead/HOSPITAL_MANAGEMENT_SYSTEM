@@ -11,24 +11,21 @@ char* getUserID()
 
     do 
     {
-        clearTerminal();
         username = getString("Enter patient`s name: ");
         userData = queryFieldStrict("Patient_IDs", "Name" ,username);
 
         if (userData.error == 1)  // userData.error will be 1 if the username is not found
         {
-             displaySystemMessage("Username not found!", 2);
+            displaySystemMessage("Username not found!", 2);
         }
         else
         {
             valid = 1;
         }
 
-    }while(!valid);
+    } while (!valid);
 
-    freeMalloc2D(userData);
-
-    return username;
+    return userData.data[0][0];
 }
 
 void displayAllergies(char* userID) {
@@ -214,7 +211,7 @@ void EHRMenu()
     }
 }
 
-//////////////////////////NOT MINE/////////////////////////////////////////
+//////////////////////////UTILITY/////////////////////////////////////////
 
 void displayTabulatedData1(struct dataContainer2D data)
 {   const int minPadding = 5;
@@ -393,6 +390,8 @@ char* getValidUsername()
     return username;
 }
 
+/////////////////////////PART OF MENU////////////////////////////
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
@@ -435,7 +434,43 @@ void allappointments(char* doctor_username)
     freeMalloc2D(d_appointments);
 }
 
-char* my_schedule(char* doctor_username) 
+void search_Appointments(char* doctor_username)
+{   
+    struct dataContainer2D d_appointments;
+    struct dataContainer2D appointments;
+    char* search_date;
+    int valid = 0;
+
+    do
+    {   
+        clearTerminal();
+        search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
+        d_appointments = queryFieldStrict("Appointments", "Date", search_date);
+
+        if (d_appointments.error == 1)
+        {
+            displaySystemMessage("No appointment for that day!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    //get the specific dr`s all appointment
+    appointments = filterDataContainer(d_appointments, "StaffUserID", doctor_username);
+
+    displayTabulatedData(appointments);
+
+    printf("\n");
+    getString("PRESS ENTER TO RETURN...");
+    
+    freeMalloc2D(d_appointments);
+    freeMalloc2D(appointments);
+}
+
+void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
     char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability", "Back"};
@@ -452,9 +487,7 @@ char* my_schedule(char* doctor_username)
         }
         else if (d_output == 2)
         {   
-            /*Search Appointments*/
-            clearTerminal();
-            char* search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
+            search_Appointments(doctor_username);
         }
         else if (d_output == 3)
         {

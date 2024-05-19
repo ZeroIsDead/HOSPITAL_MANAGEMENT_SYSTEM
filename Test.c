@@ -1,36 +1,38 @@
 #include "File_exe.h"
 
-
-#define MAX_LINE_LENGTH 256
-
-char* getUserID() 
-{
-    char* username;
+void search_Appointments(char* doctor_username)
+{   
+    struct dataContainer2D d_appointments;
+    struct dataContainer2D appointments;
+    char* search_date;
     int valid = 0;
 
-    do 
-    {
-        username = getString("Enter patient`s name: ");
-        struct dataContainer2D userData = queryFieldStrict("Patient_IDs", "Name" ,username);
+    do
+    {   
+        clearTerminal();
+        search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
+        d_appointments = queryFieldStrict("Appointments", "Date", search_date);
 
-        if (userData.error == 1)  // userData.error will be 1 if the username is not found
+        if (d_appointments.error == 1)
         {
-             displaySystemMessage("Username not found!", 2);
+            displaySystemMessage("No appointment for that day!", 2);
         }
         else
         {
             valid = 1;
         }
 
-    } while (!valid);
+    }while(!valid);
 
-    return username;
+    //get the specific dr`s all appointment
+    appointments = filterDataContainer(d_appointments, "StaffUserID", doctor_username);
+
+    displayTabulatedData(appointments);
+
 }
 
 int main() 
 {   
-
-    char* userID = getUserID();
-    printf("Hi, %s", userID);
-
+    char* doctor_username = getString("Enter your username: ");
+    search_Appointments(doctor_username);
 }
