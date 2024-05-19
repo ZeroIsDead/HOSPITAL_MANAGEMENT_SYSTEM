@@ -30,6 +30,7 @@ void search_Appointments(char* doctor_username)
     displayTabulatedData(appointments);
 
 }
+
 int main() 
 {   
     char* doctor_username = getString("Enter your username: ");
