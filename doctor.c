@@ -2,6 +2,7 @@
 
 //char date[11] = 2024-06-01;
 
+
 /////////////////////NOT MINE////////////////////////////////////////////
 char* getUserID() 
 {
@@ -392,6 +393,36 @@ char* getValidUsername()
 
 /////////////////////////PART OF MENU////////////////////////////
 
+void append_slots_menu(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+{
+    char* d_menu = "My Avaialbility";
+    char* d_choices[] = {"Add New Slots", "Delete Current Slots", "Return to My Schedule"};
+    int noOptions = 3;
+
+    while (1)
+    {
+        clearTerminal();
+        int d_output = displayMenu(d_menu, d_choices, noOptions);
+
+        if (d_output == 1)
+        {
+            displaySystemMessage("Add New Slots", 2);
+            //add_new_slots(appointments, doctor_username, search_date);
+        }
+        else if (d_output == 2)
+        {   
+            displaySystemMessage("Delete Current Slots", 2);
+            //delete_slots(appointments, doctor_username, search_date);
+        }
+        else if (d_output == 3)
+        {
+            return;
+        }
+        
+    }
+
+}
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
@@ -470,6 +501,51 @@ void search_Appointments(char* doctor_username)
     freeMalloc2D(appointments);
 }
 
+char* Availability(char* doctor_username)
+{
+    struct dataContainer2D d_appointments;
+    struct dataContainer2D buffer_appointments;
+    struct dataContainer2D appointments;
+    char* search_date;
+    int valid = 0;
+
+    do
+    {   
+        clearTerminal();
+        search_date = getString("Please enter your schedule date (yyyy-mm-dd): ");
+        d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
+
+        if (d_appointments.error == 1)
+        {
+            displaySystemMessage("No appointment for that day!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    //get the specific dr`s all appointment
+    appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
+
+    displayTabulatedData(appointments);
+    printf("Do you want to append your schdule for this day? ( y for yes / Press anykey to return) \n");
+    char* append = getString(" Your input: ");
+
+    if (strcmp(append, "y") == 0)
+    {
+        append_slots_menu(appointments, doctor_username, search_date);
+    }
+    else
+    {
+        clearTerminal();
+        printf("\n\n");
+        getString("PRESS ENTER TO RETURN...");
+    }
+    
+}
+
 void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
@@ -491,8 +567,7 @@ void my_schedule(char* doctor_username)
         }
         else if (d_output == 3)
         {
-            /*Availability*/
-            printf("Developing");
+            Availability(doctor_username);   
         }
         else if (d_output == 4)
         {

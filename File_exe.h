@@ -150,9 +150,7 @@ void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
 }
 
-/*char* options[] = {"ar", "a", "b", "C"};
 
-    displayMenu("GOD", options, 4);*/
 void displayOptions(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
@@ -246,7 +244,11 @@ void displayOptions(char* header, char* options[], int noOptions)
     printf("\n");
 }
 
+///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
+/*char* options[] = {"ar", "a", "b", "C"};
+
+    displayMenu("GOD", options, 4);*/
 int displayMenu(char* header, char* options[], int noOptions) {
     displayOptions(header, options, noOptions);
 
