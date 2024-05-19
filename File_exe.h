@@ -627,7 +627,7 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
 
     int count = 0;
     for (int i=0; i < data.x && count < numFields; i++) {
-        if (!strncmp(data.fields[i], wantedFields[i], 256)) {
+        if (!strncmp(data.fields[i], wantedFields[count], 256)) {
             wantedFieldIndexes[count++] = i;
         }
     }
