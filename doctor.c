@@ -395,7 +395,7 @@ char* getValidUsername()
 
 void append_slots_menu(struct dataContainer2D appointments, char* doctor_username, char* search_date)
 {
-    char* d_menu = "My Avaialbility";
+    char* d_menu = "My Availability";
     char* d_choices[] = {"Add New Slots", "Delete Current Slots", "Return to My Schedule"};
     int noOptions = 3;
 
@@ -512,7 +512,7 @@ char* Availability(char* doctor_username)
     do
     {   
         clearTerminal();
-        search_date = getString("Please enter your schedule date (yyyy-mm-dd): ");
+        search_date = getString("Please enter the date you wish to read (yyyy-mm-dd): ");
         d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
 
         if (d_appointments.error == 1)

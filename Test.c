@@ -1,108 +1,101 @@
 #include "File_exe.h"
 
-void add_new_slots(struct dataContainer2D appointments, char* doctor_username, char* search_date)
-{       
-        struct dataContainer2D  d_slots;
-        char* wantedFields[] = {"TimeSlots"};
-        int no_of_fields = 1;
-        
-        d_slots = shortenDataContainer(appointments, wantedFields, no_of_fields);
-        
-        printf("%d", d_slots.error);
+void gettime(char* d_choices[])
+{   
+    char* token;
+    int start_hour, start_minutes, end_hour, end_minutes;
 
-        displayTabulatedData(d_slots);
+    token = strtok(time_slot, ":-");
+    if (token != NULL) {
+        start_hour = atoi(token);
+        token = strtok(NULL, ":-");
+    }
+    if (token != NULL) {
+        start_minutes = atoi(token);
+        token = strtok(NULL, ":-");
+    }
+    if (token != NULL) {
+        end_hour = atoi(token);
+        token = strtok(NULL, ":-");
+    }
+    if (token != NULL) {
+        end_minutes = atoi(token);
+    }
 
-        // //cooking for menu
-        // char* d_menu = "Choose the slots you wish y";
-        // char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability", "Back"};
-        // int noOptions = 4;
-    
+    printf("Start hour: %02d, Start minutes: %02d, End hour: %02d, End minutes: %02d\n", start_hour, start_minutes, end_hour, end_minutes);
 
-        // displayMenu
 }
 
-void append_slots_menu(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+
+void delete_slots(struct dataContainer2D appointments, char* doctor_username, char* search_date)
 {
-    char* d_menu = "My Avaialbility";
-    char* d_choices[] = {"Add New Slots", "Delete Current Slots", "Return to my Schedule"};
-    int noOptions = 3;
+    printf("rows: %d\n", appointments.y);
+    printf("column:%d\n", appointments.x);
 
-    while (1)
+    /*Index note
+    appointments.data[0][1] = Slots1
+    appointments.data[0][2] = Slots2
+    appointments.data[0][3] = Slots3
+    appointments.data[0][4] = Slots4
+    */
+
+    
+    char* d_menu = "Which time slots to delete?";
+    char* d_choices[appointments.x];
+    int choice_index = 0;
+    
+    for (int j = 1 ; j < appointments.x - 1; j++)
     {
-        clearTerminal();
-        int d_output = displayMenu(d_menu, d_choices, noOptions);
+        d_choices[choice_index] = appointments.data[0][j];
+        choice_index++;
+    }
 
-        if (d_output == 1)
-        {
-            //displaySystemMessage("Add New Slots", 2);
-            add_new_slots(appointments, doctor_username, search_date);
-        }
-        else if (d_output == 2)
-        {   
-            displaySystemMessage("Delete Current Slots", 2);
-            //delete_slots(appointments, doctor_username, search_date);
-        }
-        else if (d_output == 3)
-        {
-            return;
-        }
+    //print menu
+    int d_output = displayMenu(d_menu, d_choices, choice_index);
+
+    char* newtime;
+    if (d_output == 1)
+    {
+        //printf("gettime\n");
+        gettime(d_choices);
+    }
+    else if (d_output == 2)
+    {
+        printf("gettime2\n");
+    }
+    
+}
+
+// void add_new_slots(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+// {       
+//         struct dataContainer2D  d_slots;
+//         char* wantedFields[] = {"TimeSlots"};
+//         int no_of_fields = 1;
         
-    }
+//         d_slots = shortenDataContainer(appointments, wantedFields, no_of_fields);
+        
+//         //cooking for menu
+//         char* d_menu = "Your time table";
+//         char* d_choices[d_slots.y];
 
-}
+//         for (int i = 0; i < d_slots.y; i++)
+//         {
+//             d_choices[i] = d_slots.data[i][0];
+//         }
+//         int noOptions = d_slots.y;
 
-char* Availability(char* doctor_username)
-{
-    struct dataContainer2D d_appointments;
-    struct dataContainer2D appointments;
-    
-    char* search_date;
-    int valid = 0;
-
-    do
-    {   
-        clearTerminal();
-        search_date = getString("Please enter your schedule date (yyyy-mm-dd): ");
-        d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
-
-        if (d_appointments.error == 1)
-        {
-            displaySystemMessage("No appointment for that day!", 2);
-        }
-        else
-        {
-            valid = 1;
-        }
-
-    }while(!valid);
-
-    //get the specific dr`s all appointment
-    appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
-
-    //print dr`s availability
-    displayTabulatedData(appointments);
-
-    //ask for appending slots
-    printf("Do you want to append your schdule for this day? ( y for yes / Press anykey to return) \n");
-    char* append = getString(" Your input: ");
-
-    if (strcmp(append, "y") == 0)
-    {
-        append_slots_menu(appointments, doctor_username, search_date);
-    }
-    else
-    {
-        clearTerminal();
-        printf("\n\n");
-        getString("PRESS ENTER TO RETURN...");
-    }
-    
-}
-
-
+//         displayMenu(d_menu, d_choices, noOptions);
+// }
 
 int main() 
 {   
     char* doctor_username = getString("Enter your username: ");
-    Availability(doctor_username);
+    char* search_date = getString("Enter the date you wish to read (yyyy-mm-dd): ");
+
+    struct dataContainer2D d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
+
+    struct dataContainer2D appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
+    
+    
+    delete_slots(appointments, doctor_username, search_date);
 }
