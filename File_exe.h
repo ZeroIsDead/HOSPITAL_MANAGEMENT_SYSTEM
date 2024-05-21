@@ -1060,7 +1060,7 @@ Sample of implementation:
 *4. call: updateData("file_name_without.txt", master.data);
 
 */
-int updateData(const char* filename, char** relaying_array) 
+int updateData(const char* filename, char** relaying_array)
 {   
     //getData of the file
     struct dataContainer2D master = getData(filename);
@@ -1082,7 +1082,69 @@ int updateData(const char* filename, char** relaying_array)
     }    
 
     return writeData(filename, master);
-}   
+}
+
+
+/*Update file that dont have primary key
+ 
+*Parameter: 
+    * - filename: name of the file without .txt [example : users, Patient_IDs, Inventory]
+
+    * - relaying_array: array that store all updated inputs
+        -- if you do: struct dataContainer1D master = queryKey("users", UserID);
+        data.data is your array
+
+        >> you can read struct datacontainer1D above
+
+    * - second_key: the second key you want to search
+        -- data types : char* second_key;
+
+    * - second_key_index: the index (an integer) of the second key
+        -- data types : int second_key_index;
+
+updateData("file_name", master.data);
+
+Sample of implementation:
+
+*1. Get your unqiue_key input as Unique_key
+
+*2. use: struct dataContainer1D master = queryKey("file_name", Unique_key);
+    * - the data is stored in master.data 
+
+*3. Modify accordingly by using different index of master.data[ your_index_here ]
+
+*4. Determine your 2nd key and the index of 2nd key in the txt file.
+
+*4. call: updateData("file_name_without.txt", master.data, second_key, second_key_index);
+
+*/
+int update_non_primary_Data(const char* filename, char** relaying_array, char* second_key, int second_key_index) 
+{   
+    //getData of the file
+    struct dataContainer2D master = getData(filename);
+    const int uniqueIDIndex = 0;
+
+    //iterate vertically through data search for the unique key
+    for (int i=0; i<master.y; i++) 
+    {   
+        //IF FOUND the unique
+        if(!strncmp(master.data[i][uniqueIDIndex], relaying_array[uniqueIDIndex], 255))
+        {
+            //store the relaying array into master
+            
+            if (!strncmp(master.data[i][second_key_index], second_key, 255))
+            {
+                for (int j=0; j<master.x; j++) 
+                {
+                    master.data[i][j] = strdup(relaying_array[j]);
+                }
+            }
+        
+        }
+    }    
+
+    return writeData(filename, master);
+}
 
 /*Delete existing record in existing file:
 
