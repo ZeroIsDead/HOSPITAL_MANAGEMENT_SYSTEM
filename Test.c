@@ -2,59 +2,92 @@
 
 
 #define MAX_LINE_LENGTH 256
-
-char* getValidUsername()
-{
-    char* doctor_username;
-    struct dataContainer1D userData;
-    int valid = 0;
-
-    do 
-    {
-        clearTerminal();
-        doctor_username = getString("Enter your username: ");
-        userData = queryKey("Staff_IDs", doctor_username);
-
-        if (userData.error == 1)  // userData.error will be 1 if the username is not found
-        {
-            displaySystemMessage("Username not found!", 2);
-        }
-        else
-        {
-            valid = 1;
-        }
-
-    }while(!valid);
-
-    int valid2 = 0;
-
-    do
-    {
-        char* doctor_pw = getString("Enter your password: ");
-
-        if (!strcmp(doctor_pw, userData.data[1]))
-        {
-            valid2 = 1;
-        }
-        else
-        {
-            displaySystemMessage("Wrong password, please try again!", 2);
-        }
-    }
-    while (!valid2);
+char* NurseInventoryId(){
+    struct dataContainer2D dataN = getData("Inventory");
+    char* inventoryID = dataN.data[dataN.y-1][0];
+    char number[3];
     
-    displaySystemMessage("Login successful!", 2);
+    //Separating the string "021" from "med021"
+    for (int i = 0; i < 3; i++){
+        number[i] = inventoryID[i+3];
+    }
+    
+    //string to int and adding 1 to it 
+    int num = atoi(number) + 1;
+    char newNum[3];
+    char newId[7];
 
-    freeMalloc1D(userData);
+    //Creating new Inventory ID
+    if (num < 99){
+        strcpy(newId, "med0");
+        strcat(newId, itoa(num, newNum, 10));
+    }
+    else{
+        strcpy(newId, "med");
+        strcat(newId, itoa(num, newNum, 10));    
+    }
 
-    return doctor_username;
+    freeMalloc2D(dataN);
+    return strdup(newId);
 }
 
+void NurseAddNewIteam(){
+    
+    char* newMed;
+
+    newMed = getString("Enter the medicine name: ");
+    struct dataContainer2D checkMed = queryFieldStrict("Inventory","Medicine Name", newMed);
+    if (checkMed.error == 0){
+        displaySystemMessage("Medicine already Exists, Please enter new Medicine", 2);
+        freeMalloc2D(checkMed);
+        NurseAddNewIteam();
+        return;
+    }
+    else{
+
+        char* newID = NurseInventoryId();
+        char* price = getString("Enter Price: ");
+        char* specification = getString("Enter Specification: ");
+        int quantity;
+        do{
+            quantity = getInt("Enter Quantity: ");
+            if(quantity == -1){
+                displaySystemMessage("Enterned value is not an integer please try again",2);
+            }else{
+                break;
+            }
+        }
+        while(1);
+        
+        char strQuantity[5];
+        itoa(quantity, strQuantity, 10);
+        
+        char* newIteam [] = {newID, newMed, price, specification, strQuantity};
+
+        for(int i = 0; i < 5; i++){
+            printf("%s \n", newIteam[i]);
+        }
+    }
+
+}
+void NUpdateStationInventory(){
+    char* InventoryBanner = "Nurse Inventory Management";
+    char* options[] = {"Enter New Iteam to Inventory", "Update a Current Inventory"};
+    int output = displayMenu(InventoryBanner,options,2);
+
+    //Enter New iteam
+    if (output == 1){
+        NurseAddNewIteam();
+
+    }
+
+    // Update existing iteam
+    else{
+        printf("Update\n");
+    }
+}
 
 int main() 
 {   
-
-    char* doctor_username = getValidUsername();
-    printf("Hi, %s", doctor_username);
-
+   NUpdateStationInventory();
 }
