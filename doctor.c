@@ -2,6 +2,414 @@
 
 //char date[11] = 2024-06-01;
 
+
+/////////////////////NOT MINE////////////////////////////////////////////
+char* getUserID() 
+{
+    char* username;
+    struct dataContainer2D userData;
+    int valid = 0;
+
+    do 
+    {
+        username = getString("Enter patient`s name: ");
+        userData = queryFieldStrict("Patient_IDs", "Name" ,username);
+
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
+        {
+            displaySystemMessage("Username not found!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    } while (!valid);
+
+    return userData.data[0][0];
+}
+
+void displayAllergies(char* userID) {
+    struct dataContainer2D data = queryFieldStrict("allergies", "PatientUserID", userID);
+
+    if (data.error) {
+        displaySystemMessage("No Allergies Found...", 2);
+        return;
+    }
+
+    struct dataContainer1D allergies = getFieldValues(data, "Allergies");
+
+    if (!strncmp(allergies.data[0], "None", 4)) {
+        freeMalloc1D(allergies);
+        freeMalloc2D(data);
+        displaySystemMessage("No Allergies Found...", 2);
+        return;
+    } 
+
+    clearTerminal();
+
+    displayOptions("Allergies", allergies.data, allergies.x);
+
+    getString("PRESS ENTER TO ENTER");
+
+    freeMalloc2D(data);
+    freeMalloc1D(allergies);
+
+}
+
+void displayPastProcedures(char* userID) {
+    struct dataContainer2D data = queryFieldStrict("pastProcedures", "PatientUserID", userID);
+
+    if (data.error) {
+        displaySystemMessage("No Procedures Found...", 2);
+        return;
+    }
+
+    struct dataContainer1D procedures = getFieldValues(data, "PastProcedures");
+
+    if (!strncmp(procedures.data[0], "None", 4)) {
+        freeMalloc1D(procedures);
+        freeMalloc2D(data);
+        displaySystemMessage("No Procedures Found...", 2);
+        return;
+    } 
+
+    clearTerminal();
+
+    displayOptions("Past Procedures", procedures.data, procedures.x);
+
+    getString("PRESS ENTER TO ENTER");
+
+    freeMalloc2D(data);
+    freeMalloc1D(procedures);
+}
+
+void displayPrescriptions(char* prescriptionID) {
+    struct dataContainer2D prescriptions = queryFieldStrict("prescription", "PrescriptionID", prescriptionID);
+
+    if (prescriptions.error) {
+            displaySystemMessage("Cannot Find Prescriptions2", 2);
+            return;
+    }
+
+    struct dataContainer1D medicineIDs = getFieldValues(prescriptions, "MedicineID");
+
+    if (medicineIDs.error) {
+            displaySystemMessage("Cannot Find Prescriptions3", 2);
+            freeMalloc2D(prescriptions);
+            return;
+    }
+
+    struct dataContainer1D quantity = getFieldValues(prescriptions, "Quantity");
+
+    if (quantity.error) {
+            displaySystemMessage("Cannot Find Prescriptions4", 2);
+            freeMalloc2D(prescriptions);
+            freeMalloc1D(medicineIDs);
+            return;
+    }
+
+    char* header = "Prescriptions";
+    char** options = malloc(prescriptions.y * sizeof(char*));
+    int noOptions = prescriptions.y;
+
+    char buffer[256];
+
+    for (int i=0; i<noOptions; i++) {
+        struct dataContainer1D medicine = queryKey("Inventory", medicineIDs.data[i]);
+
+        if (medicine.error) {
+            displaySystemMessage("Cannot Find Prescriptions5", 2);
+            freeMalloc2D(prescriptions);
+            freeMalloc1D(medicineIDs);
+            freeMalloc1D(quantity);
+            return;
+        }
+
+
+        sprintf(buffer, "%s x %s\0", medicine.data[1], quantity.data[i]);
+
+        options[i] = strdup(buffer);
+    }
+
+    clearTerminal();
+    displayOptions(header, options, noOptions);
+
+    getString("PRESS ENTER TO RETURN");
+
+    freeMalloc2D(prescriptions);
+    freeMalloc1D(medicineIDs);
+    freeMalloc1D(quantity);
+}
+
+void prescriptionMenu(char* userID) {
+    struct dataContainer2D appointments = queryFieldStrict("Appointments", "PatientUserID", userID);
+    
+    if (appointments.error) {
+        displaySystemMessage("No Prescriptions Found...", 2);
+        return;
+    }
+
+    struct dataContainer1D appointmentIDs = getFieldValues(appointments, "AppointmentID");
+
+    if (appointmentIDs.error) {
+        displaySystemMessage("No Prescriptions Found...", 2);
+        freeMalloc2D(appointments);
+        return;
+    }
+
+    
+    char* header = "Prescription Menu";
+    int noOptions = appointmentIDs.x + 1;
+    char** options = malloc(noOptions * sizeof(char*));
+
+    for (int i=0; i<appointmentIDs.x; i++) {
+        options[i] = strdup(appointmentIDs.data[i]);
+    }
+
+    options[appointmentIDs.x] = "Back";
+
+    clearTerminal();
+
+    int choice = displayMenu(header, options, noOptions);
+
+    if (choice == appointmentIDs.x) {
+        freeMalloc1D(appointmentIDs);
+        freeMalloc2D(appointments);
+        return;
+    }
+
+    char* chosenID = appointments.data[choice-1][6]; // PresciptionID 
+
+    displayPrescriptions(chosenID);
+
+    freeMalloc1D(appointmentIDs);
+    freeMalloc2D(appointments);
+}
+
+void EHRMenu() 
+{   
+    char* userID = getUserID();
+
+    char* header = "Electronic Health Records";
+    char* options[] = {"View Allergies", "View Past Procedures", "View Prescriptions", "Back"};
+    int noOptions = 4;
+
+    while (1) 
+    {
+        clearTerminal();
+        int result = displayMenu(header, options, noOptions);
+
+        if (result == 1) {
+            displayAllergies(userID);
+        } else if (result == 2) {
+            displayPastProcedures(userID);
+        } else if (result == 3) {
+            prescriptionMenu(userID);
+        } else {
+            return;
+        }
+    }
+}
+
+char* gettime(char* d_choices[], int index)
+{
+    char* token;
+    int start_hour, start_minutes, end_hour, end_minutes;
+
+    char time_slot[256];
+
+    sprintf(time_slot, "%s", d_choices[index]);
+
+    token = strtok(time_slot, ":-");
+
+    if (token != NULL) {
+        start_hour = atoi(token);
+        token = strtok(NULL, ":-");
+    }
+    if (token != NULL) {
+        start_minutes = atoi(token);
+        token = strtok(NULL, ":-");
+    }
+    if (token != NULL) {
+        end_hour = atoi(token);
+        token = strtok(NULL, ":-");
+    }
+    if (token != NULL) {
+        end_minutes = atoi(token);
+    }
+
+    
+    int new_start_hour;
+    int new_start_minutes;
+    int new_end_hour;
+    int new_end_minutes;
+    
+    ///START HOUR///
+    int valid = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        printf("Current slots start: %02d:%02d\n", start_hour, start_minutes);
+        sprintf(new_time_format, " [ _ _ : %02d ]\nNew Hour ( 0-23 ): ", start_minutes);
+        new_start_hour = getInt(new_time_format);
+
+        if (new_start_hour > 0 && new_start_hour < 24)
+        {
+            valid = 1;
+        }
+        else
+        {
+            displaySystemMessage("Invalid Time input (24h format only)!", 2);
+        }
+
+    }while(!valid);
+
+    ///START MINUTES///
+    int valid2 = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        printf("Current slots start : %02d:%02d\n", new_start_hour, start_minutes);
+        sprintf(new_time_format, " [ %02d: _ _ ]\nNew Minutes: ", new_start_hour);
+        new_start_minutes = getInt(new_time_format);
+
+        if (new_start_minutes >= 0 && new_start_minutes < 60)
+        {
+            valid2 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Invalid Time input (0-59) only)!", 2);
+        }
+
+    }while(!valid2);
+
+    ///END HOUR///
+    int valid3 = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        printf("Slots start : %02d:%02d\n", new_start_hour, new_start_minutes);
+        printf("Current slots ends : %02d:%02d\n", end_hour, end_minutes);
+        sprintf(new_time_format, " [ _ _ : %02d ]\nNew Hour ( %02d-23 ): ", end_minutes, new_start_hour);
+        new_end_hour = getInt(new_time_format);
+
+        if (new_end_hour > 0 && new_end_hour < 24 && new_end_hour > new_start_hour) 
+        {
+            valid3 = 1;
+        }
+        else
+        {   
+            char new_error_message[256];
+            sprintf(new_error_message, " Invalid Time input! Your new slots can ends at ( %02d-23 ) only! : ",new_start_hour);
+            displaySystemMessage(new_error_message, 2);
+        }
+
+    }while(!valid3);
+
+    ///END MINUTES///
+    int valid4 = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        printf("Slots start at: %02d:%02d\n", new_start_hour, new_start_minutes);
+        printf("Current slots ends : %02d:%02d\n", end_hour, end_minutes);
+        sprintf(new_time_format, " [ %02d: _ _ ]\nNew Minutes: ", new_end_hour);
+        new_end_minutes = getInt(new_time_format);
+
+        if (new_end_minutes >= 0 && new_end_minutes < 60)
+        {
+            valid4 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Invalid Time input (0-59) only)!", 2);
+        }
+
+    }while(!valid4);
+
+    printf("New slots start at: %02d:%02d\n", new_start_hour, new_start_minutes);
+    printf("New slots ends at: %02d:%02d\n", new_end_hour, new_end_minutes);
+
+    char new_time[256];
+    sprintf(new_time, "%02d:%02d-%02d:%02d", new_start_hour, new_start_minutes, new_end_hour, new_end_minutes);
+
+    char* new_time_ptr = malloc(strlen(new_time) + 1);
+    if(new_time_ptr == NULL) 
+    {
+        displaySystemMessage("Memory allocation failed", 2);
+        return NULL;
+    }
+    strcpy(new_time_ptr, new_time);
+    return new_time_ptr;
+    
+}
+
+void ammend_slots(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+{
+    /*Index note
+    appointments.data[0][1] = Slots1
+    appointments.data[0][2] = Slots2
+    appointments.data[0][3] = Slots3
+    appointments.data[0][4] = Slots4
+    */
+
+    char* d_menu = "Which time slots to amend?";
+    char* d_choices[appointments.x];
+    int choice_index = 0;
+    
+    for (int j = 1 ; j < appointments.x - 1; j++)
+    {
+        d_choices[choice_index] = appointments.data[0][j];
+        choice_index++;
+    }
+
+    //print menu
+    int d_output = displayMenu(d_menu, d_choices, choice_index);
+
+    int index;
+    char* newtime;
+    if (d_output == 1)
+    {   
+        index = 0;
+        newtime = gettime(d_choices,index);
+        appointments.data[0][1] = newtime;
+    }
+    else if (d_output == 2)
+    {
+        index = 1;
+        newtime = gettime(d_choices,index);
+        appointments.data[0][2] = newtime;
+    }
+    else if (d_output == 3)
+    {
+        index = 2;
+        newtime = gettime(d_choices,index);
+        appointments.data[0][3] = newtime;
+    }
+    else if (d_output == 4)
+    {
+        index = 3;
+        newtime = gettime(d_choices,index);
+        appointments.data[0][4] = newtime;
+    }
+    
+    char new_time[256];
+    sprintf(new_time, "Uploading new time: %s\n", newtime);
+    displaySystemMessage(new_time, 2);
+
+    update_non_primary_Data("doctorSchedule", appointments.data[0], search_date, 5);
+
+    displaySystemMessage("Update Successful! ", 2);
+
+}
+//////////////////////////UTILITY/////////////////////////////////////////
+
 void displayTabulatedData1(struct dataContainer2D data)
 {   const int minPadding = 5;
     int numRow = data.y + 1;
@@ -179,28 +587,63 @@ char* getValidUsername()
     return username;
 }
 
+/////////////////////////PART OF MENU////////////////////////////
+
+void append_slots_menu(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+{
+    char* d_menu = "My Availability";
+    char* d_choices[] = {"Ammend Slots", "Delete Current Slots", "Return to My Schedule"};
+    int noOptions = 3;
+
+    while (1)
+    {
+        clearTerminal();
+        int d_output = displayMenu(d_menu, d_choices, noOptions);
+
+        if (d_output == 1)
+        {
+            ammend_slots(appointments, doctor_username, search_date);
+        }
+        else if (d_output == 2)
+        {   
+            displaySystemMessage("Delete Current Slots", 2);
+            //delete_slots(appointments, doctor_username, search_date);
+        }
+        else if (d_output == 3)
+        {
+            return;
+        }
+        
+    }
+
+}
+
 void EHR_access(char* doctor_username)
 {
-    struct dataContainer2D records = queryFieldStrict("EHR", "DoctorID", doctor_username);
-
-    clearTerminal();
-    if (records.error) 
-    {
-        displaySystemMessage("Failed to Access Electronic Health Records...Ask for Technician`s Help", 3);
-        return;
-    }
-
-    if (!records.y) 
-    {
-        displaySystemMessage("No records found!!", 3);
-        return;
-    }
-    displayTabulatedData(records);
-
-    printf("\n\n");
-    getString("PRESS ENTER TO RETURN...");
+    char* d_menu = "Electronic Health Records";
+    char* d_choices[] = {"Search for patient", "Search via Case Name", "Back"};
+    int noOptions = 3;
     
-    freeMalloc2D(records);
+    while (1)
+    {
+        clearTerminal();
+        int d_output = displayMenu(d_menu, d_choices, noOptions);
+
+        if (d_output == 1)
+        {
+            //patient access
+            EHRMenu();
+        }
+        else if (d_output == 2)
+        {   
+            /*Search Case*/
+            clearTerminal();
+        }
+        else if (d_output == 3)
+        {
+            return;
+        }
+    }
 }
 
 void allappointments(char* doctor_username)
@@ -217,11 +660,92 @@ void allappointments(char* doctor_username)
     freeMalloc2D(d_appointments);
 }
 
-int my_schedule(char* doctor_username) 
+void search_Appointments(char* doctor_username)
+{   
+    struct dataContainer2D d_appointments;
+    struct dataContainer2D appointments;
+    char* search_date;
+    int valid = 0;
+
+    do
+    {   
+        clearTerminal();
+        search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
+        d_appointments = queryFieldStrict("Appointments", "Date", search_date);
+
+        if (d_appointments.error == 1)
+        {
+            displaySystemMessage("No appointment for that day!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    //get the specific dr`s all appointment
+    appointments = filterDataContainer(d_appointments, "StaffUserID", doctor_username);
+
+    displayTabulatedData(appointments);
+
+    printf("\n");
+    getString("PRESS ENTER TO RETURN...");
+    
+    freeMalloc2D(d_appointments);
+    freeMalloc2D(appointments);
+}
+
+char* Availability(char* doctor_username)
+{
+    struct dataContainer2D d_appointments;
+    struct dataContainer2D buffer_appointments;
+    struct dataContainer2D appointments;
+    char* search_date;
+    int valid = 0;
+
+    do
+    {   
+        clearTerminal();
+        search_date = getString("Please enter the date you wish to read (yyyy-mm-dd): ");
+        d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
+
+        if (d_appointments.error == 1)
+        {
+            displaySystemMessage("No appointment for that day!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    //get the specific dr`s all appointment
+    appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
+
+    displayTabulatedData(appointments);
+    printf("Do you want to append your schdule for this day? ( y for yes / Press anykey to return) \n");
+    char* append = getString(" Your input: ");
+
+    if (strcmp(append, "y") == 0)
+    {
+        append_slots_menu(appointments, doctor_username, search_date);
+    }
+    else
+    {
+        clearTerminal();
+        printf("\n\n");
+        getString("PRESS ENTER TO RETURN...");
+    }
+    
+}
+
+void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
-    char* d_choices[] = {"All Appointments History", "Search Appointments", "Back"};
-    int noOptions = 3;
+    char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability", "Back"};
+    int noOptions = 4;
 
     while (1)
     {
@@ -234,11 +758,13 @@ int my_schedule(char* doctor_username)
         }
         else if (d_output == 2)
         {   
-            /*Search Appointments*/
-            clearTerminal();
-            char* search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
+            search_Appointments(doctor_username);
         }
         else if (d_output == 3)
+        {
+            Availability(doctor_username);   
+        }
+        else if (d_output == 4)
         {
             return;
         }
@@ -257,6 +783,7 @@ int doctor()
     char* d_choices[] = {"My Schedule", "EHR access", "My Reports", "Logout"};
     int noOptions = 4;
         
+/////////////////////////MENU/////////////////////////////////
     while (1) 
     {  
         clearTerminal();
@@ -268,7 +795,6 @@ int doctor()
         }
         else if (d_output == 2)
         {
-            //EHR_access();
             EHR_access(doctor_username);
         }
         else if (d_output == 3)

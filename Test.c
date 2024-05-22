@@ -2,37 +2,59 @@
 
 
 #define MAX_LINE_LENGTH 256
-void NurseBack(){
 
-    int back = 1;
-    back = getInt("\nPlease Enter 0 to go back");
+char* getValidUsername()
+{
+    char* doctor_username;
+    struct dataContainer1D userData;
+    int valid = 0;
 
-    if (back != 0 ){
-        displaySystemMessage("Please enter the corrent input!: ",2);
-        NurseBack();
-        return;
+    do 
+    {
+        clearTerminal();
+        doctor_username = getString("Enter your username: ");
+        userData = queryKey("Staff_IDs", doctor_username);
+
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
+        {
+            displaySystemMessage("Username not found!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    int valid2 = 0;
+
+    do
+    {
+        char* doctor_pw = getString("Enter your password: ");
+
+        if (!strcmp(doctor_pw, userData.data[1]))
+        {
+            valid2 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Wrong password, please try again!", 2);
+        }
     }
-    else{
-        return;
-    }
+    while (!valid2);
+    
+    displaySystemMessage("Login successful!", 2);
+
+    freeMalloc1D(userData);
+
+    return doctor_username;
 }
-   
 
 
+int main() 
+{   
 
+    char* doctor_username = getValidUsername();
+    printf("Hi, %s", doctor_username);
 
-int main(){
-    char* docName = getString("Please enter the Name of the Doctor: ");
-    struct dataContainer1D docSchedule = queryKey("Staff_IDs", docName);
-        
-    while (docSchedule.error == 1){
-        displaySystemMessage("Error!!",2);
-        docName = getString("Please enter the Name of the Doctor: ");
-        docSchedule = queryKey("Staff_IDs", docName);
-    }
-    docSchedule.data[3][6] = '\0';
-    for (int i = 0; i < docSchedule.x; i++){
-        printf("%s ", docSchedule.data[i]);
-    }
-    NurseBack();
 }

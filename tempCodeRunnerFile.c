@@ -1,1 +1,2 @@
 
+    token = strtok(NULL, "-");
