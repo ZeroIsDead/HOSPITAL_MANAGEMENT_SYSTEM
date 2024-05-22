@@ -143,6 +143,33 @@ int getInt(char* prompt) {
     return -1;
 }
 
+float getFloat(char* prompt) {
+    int bufferLength = 256;
+    char buffer[bufferLength];
+
+    printf(prompt);
+    fgets(buffer, bufferLength, stdin);
+
+    buffer[strcspn(buffer, "\n")] = 0;
+
+    // Decides if string is a Number
+    int isDigit = 1;
+    int numNotDigit = 1;
+    for (int i = 0; buffer[i] && isDigit; i++) {
+        if (buffer[i] == '.' && numNotDigit) {
+            numNotDigit = 0;
+            continue;
+        }
+        isDigit = isdigit(buffer[i]);
+    }
+
+    if (isDigit) {
+        return atof(buffer);
+    }
+
+    return -1.0;
+}
+
 void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
     printf(message);
