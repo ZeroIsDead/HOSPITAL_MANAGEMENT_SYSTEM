@@ -177,36 +177,6 @@ void NViewStationInventory(){
     NurseMenue(NurseName);
 }
 
-void NUpdateStationInventory(){
-    char* nInventoryBanner = "Nurse Inventory Management";
-    char* options = {"Enter New Iteam to Inventory", "Update a Current Inventory"};
-    int output = displayMenu(nInventoryBanner,options,2);
-
-    //Enter New iteam
-    if (output == 1){
-        char* newMed;
-        do{
-            newMed = getString("Enter the medicine name: ");
-            struct dataContainer1D checkMed = queryKey("Inventory","Medicine Name");
-            if (checkMed.error == 1){
-                freeMalloc1D(checkMed);
-                displaySystemMessage("Medicine already Exists, Please enter new Medicine", 2);
-            }
-            else{
-                freeMalloc1D(checkMed);
-                break;
-            }
-        }while(1);
-
-        char* newId = NurseInventoryId();
-    }
-
-    // Update existing iteam
-    else{
-        printf("Update\n");
-    }
-}
-
 void NViewPatientReport(){
     printf("View Patient Report\n");
 }
@@ -215,8 +185,115 @@ void NViewUnitReport(){
     printf("View Unit Report\n");
 }
 
-void NurseMenue(char* name){
 
+void NurseAddNewIteam(){
+    
+    //Get New Medicine Name 
+    char* newMed = getString("Enter the medicine name: ");
+    
+    //Check if newMed already exists in Inventory.txt
+    struct dataContainer2D checkMed = queryFieldStrict("Inventory","Medicine Name", newMed);
+    if (checkMed.error == 0){
+        displaySystemMessage("Medicine already Exists, Please enter new Medicine", 2);
+        freeMalloc2D(checkMed);
+        NurseAddNewIteam();
+        return;
+    }
+
+    //If newMed is new
+    else{
+
+        //Create new Unique ID
+        char* newID = NurseInventoryId();
+        
+        //Get Price and check if entered value is a float
+        float price;
+        do {
+            price = getFloat("Enter Price: ");
+            if (price == -1.0){
+                displaySystemMessage("Entered Value is not a Float",2);
+            }
+            else{
+                break;
+            }
+        }
+        while(1);
+
+        //Convert float to string
+        char strPrice[10];
+        snprintf(strPrice, sizeof(strPrice), "%.6g", price);
+
+        //Get Specification of the medicine
+        char* specification = getString("Enter Specification: ");
+        
+        //Get quanity and check if entered value is an integer
+        int quantity;
+        do{
+            quantity = getInt("Enter Quantity: ");
+            if(quantity == -1){
+                displaySystemMessage("Enterned value is not an integer please try again",2);
+            }
+            else{
+                break;
+            }
+        }
+        while(1);
+
+        //Convert int to string
+        char strQuantity[5];
+        itoa(quantity, strQuantity, 10);
+        
+        //Create array of all entered elements in string form
+        char* newIteam [] = {newID, newMed, strPrice, specification, strQuantity};
+
+        //update inventory.txt
+        int write = write_new_data("Inventory", 5, newIteam);
+        
+        //Check if update successful or not 
+        if (write == 0){
+            displaySystemMessage("New Iteams Updated Successfully",2);
+        }
+        else{
+            displaySystemMessage("ERROR!!!",2);
+        }
+    }
+
+}
+
+//Function to Update Existing
+void NUpdateExistingInventory(){
+
+}
+
+void NUpdateStationInventory(){
+    char* InventoryBanner = "Nurse Inventory Management";
+    char* options[] = {"Enter New Iteam to Inventory", "Update a Current Inventory","Back"};
+    int output = displayMenu(InventoryBanner,options,3);
+
+    //Enter New iteam
+    if (output == 1){
+        NurseAddNewIteam();
+        clearTerminal();
+        NurseMenue(NurseName);
+        return;
+    }
+
+    // Update existing iteam
+    else if (output == 2){
+        printf("Update\n");
+    }
+
+    //Back to Nurse Menue 
+    else{
+        clearTerminal();
+        NurseMenue(NurseName);
+        return;
+    }
+}
+
+
+void NurseMenue(char* name){
+    clearTerminal();
     char* header = NurseWelcomeMessage(name);
     char* options[] = {"Current Doctor Schedules","Available Doctor","View Station Inventory","Update Station Inventory","View Patient Report","View Unit Report","Log Out"};
 
