@@ -177,6 +177,91 @@ void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
 }
 
+void displayUnorderedOptions(char* header, char* options[], int noOptions) 
+{
+    // get max sizeof option string
+    int maxLength = strlen(header);
+
+    for (int i=0; i<noOptions; i++) {
+        // get length
+        int currentLength = strlen(options[i]);
+    
+        if (currentLength > maxLength) {
+            maxLength = currentLength;
+        }
+    }
+
+    const int horizontalpadding = 15;
+    int borderLength = maxLength + 2 * horizontalpadding;
+
+    // Top  Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // Header
+    const int verticalPadding = 1;
+
+    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
+    
+    const int borderCount = 2;
+    const char character = '|';
+    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
+
+    printf("%c", character);
+
+    for (int i=0; i<headerPadding; i++) {
+        printf(" ");
+    }
+
+    printf(header);
+
+    for (int i=0; i<rightPadding; i++) {
+        printf(" ");
+    }
+
+    printf("%c", character);
+
+    printf("\n");
+
+    // Middle Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    const int leftPadding = 5;
+
+    // Options
+    for (int i=0; i<noOptions; i++) {
+        const char* text = options[i];
+        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
+
+        printf("%c", character);
+
+        for (int i=0; i<leftPadding; i++) {
+            printf(" ");
+        }
+
+        printf(text);
+
+        for (int i=0; i<rightPadding; i++) {
+            printf(" ");
+        }
+
+        printf("%c", character);
+
+        printf("\n");
+    }
+
+    // Bottom Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
+
 
 void displayOptions(char* header, char* options[], int noOptions) 
 {
