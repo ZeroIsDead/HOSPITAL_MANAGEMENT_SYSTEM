@@ -1,93 +1,73 @@
 #include "File_exe.h"
 
-int delete_non_primary_Key(const char* filename, char* first_key, char* second_key, int second_key_index) 
+void My_Reports(char* appointmentID) 
 {
-    struct dataContainer2D master = getData(filename);
+    char* CaseName;
+    char* DiagnosticComments;
     
-    master.y = master.y - 1;
+    printf("Report for appointment %s\n", appointmentID);
+    CaseName = getString("Enter case name: ");
+    DiagnosticComments = getString("Enter diagnostic comments: ");
 
-    for (int i=0; i<master.y; i++) 
-    {   
-        //IF FOUND the unique
-        if(!strncmp(master.data[i][0], first_key, 255))
-        {   
-            if (!strncmp(master.data[i][second_key_index], second_key, 255))
-            {
-                //delete that record
-                free(master.data[i]);
-                for (int j=i; j<master.y; j++)
-                {
-                    master.data[j] = master.data[j+1];
-                }
-            }
-                
-        }
-    }    
+    //cooking for UI
+    char CaseHeader[256];
+    char display_CaseName[256];
+    char display_DiagnosticComments[256];
 
-    return writeData(filename, master);
+
+    sprintf(CaseHeader, "Report for appointment %s", appointmentID);
+    sprintf(display_CaseName, "Case Name: %s", CaseName);
+    sprintf(display_DiagnosticComments, "Diagnostic Comments: %s", DiagnosticComments);
+    char* options[] = {display_CaseName, display_DiagnosticComments};
+
+    display_data_horizontal(CaseHeader, options, 2);
+    
 }
 
-
+void Write_New_Report()
+{
+    char* appointmentID;
     
-//     char new_time[256];
-//     sprintf(new_time, "Uploading new time: %s\n", newtime);
-//     displaySystemMessage(new_time, 2);
+    appointmentID = getString("Enter appointment ID for your report: ");
 
-//     update_non_primary_Data("doctorSchedule", appointments.data[0], search_date, 5);
+    struct dataContainer1D appointments = queryKey("Appointments", appointmentID);   
 
-//     displaySystemMessage("Update Successful! ", 2);
-
-// }
-    //delete_non_primary_Key("doctorSchedule", appointments.data[0], search_date, 5);
-
-
-// void delete_slots()
-// {
-
-// }
-
-
-void delete_entire_day(struct dataContainer2D appointments, char* doctor_username, char* search_date)
-{   
-    clearTerminal();
-    displayTabulatedData(appointments);
-    printf("\nDo you sure to remove your entire schdule for this day?( y for yes / Press anykey to return)\n");
-    char* input = getString("Your input: ");
-
-    if (strcmp(input, "y") == 0)
+    if (appointments.data[7] == NULL)
     {
-        char* username = getString("Enter your username for comfirmation: ");
-
-        if (strcmp(username, doctor_username) == 0)
-        {    
-            delete_non_primary_Key("doctorSchedule", doctor_username, search_date, 5);
-        }
-        else
-        {
-            clearTerminal();
-            printf("\n\n");
-            getString("WRONG USERNAME, PRESS ENTER TO RETURN...");
-        }
-        
+        My_Reports(appointmentID);
     }
     else
     {
-        clearTerminal();
-        printf("\n\n");
-        getString("PRESS ENTER TO RETURN...");
+        printf("Appointment %s already has a report", appointmentID);
     }
     
 }
 
+void My_reports_menu()
+{
+    clearTerminal();
+    char* header = "My Reports";
+    char* options[] = {"View My Reports", "Write New Report", "Back"};
+    int noOptions = 3;
+
+    int result = displayMenu(header, options, noOptions);
+
+    if (result == 1) 
+    {
+        // View_My_Reports();
+    } 
+    else if (result == 2)
+    {
+        Write_New_Report();
+    } 
+    else if (result == 3) 
+    {
+        return;
+    }
+}
 
 int main() 
 {   
-    char* doctor_username = getString("Enter your username: ");
-    char* search_date = getString("Enter the date you wish to remove (yyyy-mm-dd): ");
-
-    struct dataContainer2D d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
-
-    struct dataContainer2D appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
-    
-    delete_entire_day(appointments, doctor_username, search_date);
+    My_reports_menu();
+    return 0;
 }

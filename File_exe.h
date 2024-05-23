@@ -177,7 +177,15 @@ void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
 }
 
+///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
+
+/*Print Column Vertically with index 
+1.
+2.
+3.
+
+*/
 void displayOptions(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
@@ -270,8 +278,6 @@ void displayOptions(char* header, char* options[], int noOptions)
     }
     printf("\n");
 }
-
-///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
 /*char* options[] = {"ar", "a", "b", "C"};
 

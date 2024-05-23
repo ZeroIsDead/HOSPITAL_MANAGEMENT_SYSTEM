@@ -903,7 +903,7 @@ int doctor()
         }
         else if (d_output == 3)
         {
-            //My_reports();
+            //My_reports_menu();
             printf("\nMy Reports");
         }
         else if (d_output == 4)

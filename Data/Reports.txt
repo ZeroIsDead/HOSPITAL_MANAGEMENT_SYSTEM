@@ -1,0 +1,13 @@
+ReportID;CaseName;DiagnosticComments;
+rep001;Flu;Patient showing symptoms of influenza, prescribed rest and medication.;
+rep002;Sprained Ankle;Recommended ice packs and physical therapy.;
+rep003;Hypertension;Advised lifestyle changes and prescribed blood pressure medication.;
+rep004;Diabetes;Routine check-up, insulin dosage adjusted.;
+rep005;Asthma;New inhaler prescribed, discussed triggers.;
+rep006;Back Pain;MRI scheduled, physical therapy recommended.;
+rep007;Migraine;New medication prescribed, follow-up in 2 weeks.;
+rep008;Allergic Reaction;Administered antihistamines, advised avoidance of allergens.;
+rep009;Fractured Arm;Cast applied, scheduled follow-up X-ray.;
+rep010;Bronchitis;Prescribed antibiotics, advised rest and hydration.;
+rep011;Skin Rash;Topical cream prescribed, monitor for changes.;
+rep012;Ear Infection;Prescribed antibiotics, scheduled follow-up in 1 week.;
