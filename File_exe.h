@@ -1296,4 +1296,52 @@ int deleteKey(const char* filename, char* unique_key)
     return writeData(filename, master);
 }
 
+/*Delete existing record in existing file using two keys:
+
+*Parameter:
+    * - filename: name of the file without .txt
+    * - first_key: first key of the record you want to delete ( example: username )
+    * - second_key: the second key you want to search (example: date)
+        -- data types : char* second_key;
+
+    * - second_key_index: the index (an integer) of the second key 
+        -- data types : int second_key_index;
+
+Sample of implementation:
+When using this function, you should be dealing with the file that dont have unqiue primary key.
+Thus, 2 keys is needed to determine the single line you wanted to delete. 
+In this case, you need to know the index of the second key in the txt file.
+
+assumption: first_key has index [0] in the txt file
+
+*1. Get your the first and second key of the lines of record you want to delete
+
+*2. call: delete_non_primary_Key("filename_without.txt", first_key, second_key, second_key_index);
+*/
+int delete_non_primary_Key(const char* filename, char* first_key, char* second_key, int second_key_index) 
+{
+    struct dataContainer2D master = getData(filename);
+    
+    master.y = master.y - 1;
+
+    for (int i=0; i<master.y; i++) 
+    {   
+        //IF FOUND the unique
+        if(!strncmp(master.data[i][0], first_key, 255))
+        {   
+            if (!strncmp(master.data[i][second_key_index], second_key, 255))
+            {
+                //delete that record
+                free(master.data[i]);
+                for (int j=i; j<master.y; j++)
+                {
+                    master.data[j] = master.data[j+1];
+                }
+            }
+                
+        }
+    }    
+
+    return writeData(filename, master);
+}
 /*___________________________Functions that you can call ends here_________________________________________________________________________*/

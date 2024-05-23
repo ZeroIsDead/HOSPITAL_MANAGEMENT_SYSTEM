@@ -368,9 +368,11 @@ void ammend_slots(struct dataContainer2D appointments, char* doctor_username, ch
         d_choices[choice_index] = appointments.data[0][j];
         choice_index++;
     }
+    d_choices[choice_index] = "Cancel";
 
     //print menu
-    int d_output = displayMenu(d_menu, d_choices, choice_index);
+    clearTerminal();
+    int d_output = displayMenu(d_menu, d_choices, choice_index+1);
 
     int index;
     char* newtime;
@@ -398,14 +400,24 @@ void ammend_slots(struct dataContainer2D appointments, char* doctor_username, ch
         newtime = gettime(d_choices,index);
         appointments.data[0][4] = newtime;
     }
+    else if (d_output == 5)
+    {
+        return;
+    }
     
     char new_time[256];
-    sprintf(new_time, "Uploading new time: %s\n", newtime);
+    sprintf(new_time, "Uploading new time: %s\nPlease wait....", newtime);
     displaySystemMessage(new_time, 2);
 
     update_non_primary_Data("doctorSchedule", appointments.data[0], search_date, 5);
 
     displaySystemMessage("Update Successful! ", 2);
+
+    printf("Updated Slots: \n");
+    displayTabulatedData1(appointments);
+    printf("\n\n");
+    getString("PRESS ENTER TO RETURN...");
+    
 
 }
 //////////////////////////UTILITY/////////////////////////////////////////
@@ -589,11 +601,100 @@ char* getValidUsername()
 
 /////////////////////////PART OF MENU////////////////////////////
 
+//delete entire day
+void delete_entire_day(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+{   
+    clearTerminal();
+    displayTabulatedData(appointments);
+    printf("\nDo you sure to remove your entire schdule for this day?( y for yes / Press anykey to return)\n");
+    char* input = getString("Your input: ");
+
+    if (strcmp(input, "y") == 0)
+    {
+        char* username = getString("Enter your username for comfirmation (Press anykey to return): ");
+
+        if (strcmp(username, doctor_username) == 0)
+        {    
+            delete_non_primary_Key("doctorSchedule", doctor_username, search_date, 5);
+        }
+        else
+        {
+            clearTerminal();
+            printf("\n\n");
+            getString("WRONG USERNAME, PRESS ENTER TO RETURN...");
+        }
+        
+    }
+    else
+    {
+        clearTerminal();
+        printf("\n\n");
+        getString("PRESS ENTER TO RETURN...");
+    }
+    
+}
+
+//delete a specific slot into NULL
+void delete_slots(struct dataContainer2D appointments, char* doctor_username, char* search_date)
+{       
+    char* d_menu = "Choose The Slot To Delete";
+    char* d_choices[appointments.x];
+    int choice_index = 0;
+    
+    for (int j = 1 ; j < appointments.x - 1; j++)
+    {
+        d_choices[choice_index] = appointments.data[0][j];
+        choice_index++;
+    }
+    d_choices[choice_index] = "Cancel";
+
+    int d_output = displayMenu(d_menu, d_choices, choice_index+1);
+    
+    int index;
+    if (d_output == 1)
+     {   
+        index = 1;
+        appointments.data[0][index] = "NULL";
+     }
+     else if (d_output == 2)
+     {
+        index = 2;
+        appointments.data[0][index] = "NULL";
+     }
+     else if (d_output == 3)
+     {
+        index = 3;
+        appointments.data[0][index] = "NULL";
+     }
+     else if (d_output == 4)
+     {
+        index = 4;
+        appointments.data[0][index] = "NULL";
+
+     }
+     else if (d_output == 5)
+     {
+        return;
+     }
+
+    displaySystemMessage("Uploading new time....", 2);
+
+    update_non_primary_Data("doctorSchedule", appointments.data[0], search_date, 5);
+
+    displaySystemMessage("Update Successful! ", 2);
+
+    printf("Updated Slots: \n");
+    displayTabulatedData(appointments);
+    printf("\n\n");
+    getString("PRESS ENTER TO RETURN...");
+}
+
+//menu to choose which slot to append
 void append_slots_menu(struct dataContainer2D appointments, char* doctor_username, char* search_date)
 {
-    char* d_menu = "My Availability";
-    char* d_choices[] = {"Ammend Slots", "Delete Current Slots", "Return to My Schedule"};
-    int noOptions = 3;
+    char* d_menu = "What you want to do?";
+    char* d_choices[] = {"Ammend Selected Slots", "Delete Slots","Mark Unavailable For a Day", "Return to My Schedule"};
+    int noOptions = 4;
 
     while (1)
     {
@@ -606,10 +707,13 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
         }
         else if (d_output == 2)
         {   
-            displaySystemMessage("Delete Current Slots", 2);
-            //delete_slots(appointments, doctor_username, search_date);
+            delete_slots(appointments, doctor_username, search_date);
         }
         else if (d_output == 3)
+        {
+            delete_entire_day(appointments, doctor_username, search_date);
+        }
+        else if (d_output == 4)
         {
             return;
         }
@@ -744,7 +848,7 @@ char* Availability(char* doctor_username)
 void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
-    char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability", "Back"};
+    char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability Check", "Back"};
     int noOptions = 4;
 
     while (1)
