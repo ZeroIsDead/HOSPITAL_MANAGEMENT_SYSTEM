@@ -1111,7 +1111,6 @@ int updateData(const char* filename, char** relaying_array)
     return writeData(filename, master);
 }
 
-
 /*Update file that dont have primary key
  
 *Parameter: 
