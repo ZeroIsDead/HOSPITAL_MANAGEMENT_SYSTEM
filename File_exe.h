@@ -1211,7 +1211,7 @@ int deleteKey(const char* filename, char* unique_key)
     return writeData(filename, master);
 }
 
-/*Delete existing record in existing file:
+/*Delete existing record in existing file using two keys:
 
 *Parameter:
     * - filename: name of the file without .txt
