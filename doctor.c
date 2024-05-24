@@ -600,6 +600,105 @@ char* getValidUsername()
 }
 
 /////////////////////////PART OF MENU////////////////////////////
+void My_Reports(char* appointmentID) 
+{
+    char* CaseName;
+    char* DiagnosticComments;
+    
+    clearTerminal();
+    printf("Report for appointment %s\n\n", appointmentID);
+    CaseName = getString("Enter case name: ");
+    DiagnosticComments = getString("Enter diagnostic comments: ");
+
+    //cooking for UI
+    char CaseHeader[256];
+    char display_CaseName[256];
+    char display_DiagnosticComments[256];
+
+
+    sprintf(CaseHeader, "Report for appointment %s", appointmentID);
+    sprintf(display_CaseName, "Case Name: %s", CaseName);
+    sprintf(display_DiagnosticComments, "Diagnostic Comments: %s", DiagnosticComments);
+    char* options[] = {display_CaseName, display_DiagnosticComments};
+
+    //display my_report()
+    clearTerminal();
+    displayUnorderedOptions(CaseHeader, options, 2);
+    char* comfirmation = getString("Are you sure you want to submit this report? (y/n): ");
+    
+    char reportID[8];
+    sprintf(reportID, "r%s", appointmentID);
+
+    const char* input[] = {reportID, CaseName, DiagnosticComments}; 
+    
+    if ((strcmp(comfirmation, "y") == 0))
+    {
+        displaySystemMessage("Submitting Report....", 2);
+        write_new_data("Reports", 3, input);
+        displaySystemMessage("Your Submission is Successful! Returning to Main Menu", 2);
+    }
+    else
+    {
+        return;
+    }
+
+}
+
+void Write_New_Report()
+{
+    char* appointmentID;
+    struct dataContainer1D appointments;
+    int valid = 0;
+    
+    do 
+    {   
+        clearTerminal();
+        appointmentID = getString("Enter appointment ID for your report: ");
+        appointments = queryKey("Appointments", appointmentID);  
+
+        if (appointments.error == 1)
+        {
+            displaySystemMessage("Appointment ID does not exist ! ", 2);
+        }
+        else if (appointments.data[7] != NULL)
+        {
+            char appointmentexist[256];
+            sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
+            displaySystemMessage(appointmentexist, 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    } while (!valid);
+
+    My_Reports(appointmentID);
+    
+}
+
+void My_reports_menu()
+{
+    clearTerminal();
+    char* header = "My Reports";
+    char* options[] = {"View My Reports", "Write New Report", "Back"};
+    int noOptions = 3;
+
+    int result = displayMenu(header, options, noOptions);
+
+    if (result == 1) 
+    {
+        // View_My_Reports();
+    } 
+    else if (result == 2)
+    {
+        Write_New_Report();
+    } 
+    else if (result == 3) 
+    {
+        return;
+    }
+}
 
 //delete entire day
 void delete_entire_day(struct dataContainer2D appointments, char* doctor_username, char* search_date)
@@ -903,8 +1002,7 @@ int doctor()
         }
         else if (d_output == 3)
         {
-            //My_reports_menu();
-            printf("\nMy Reports");
+            My_reports_menu();
         }
         else if (d_output == 4)
         {

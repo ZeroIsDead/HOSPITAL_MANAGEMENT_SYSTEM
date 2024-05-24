@@ -1,45 +1,7 @@
 #include "File_exe.h"
 
-void My_Reports(char* appointmentID) 
+void View_My_Reports()
 {
-    char* CaseName;
-    char* DiagnosticComments;
-    
-    printf("Report for appointment %s\n", appointmentID);
-    CaseName = getString("Enter case name: ");
-    DiagnosticComments = getString("Enter diagnostic comments: ");
-
-    //cooking for UI
-    char CaseHeader[256];
-    char display_CaseName[256];
-    char display_DiagnosticComments[256];
-
-
-    sprintf(CaseHeader, "Report for appointment %s", appointmentID);
-    sprintf(display_CaseName, "Case Name: %s", CaseName);
-    sprintf(display_DiagnosticComments, "Diagnostic Comments: %s", DiagnosticComments);
-    char* options[] = {display_CaseName, display_DiagnosticComments};
-
-    display_data_horizontal(CaseHeader, options, 2);
-    
-}
-
-void Write_New_Report()
-{
-    char* appointmentID;
-    
-    appointmentID = getString("Enter appointment ID for your report: ");
-
-    struct dataContainer1D appointments = queryKey("Appointments", appointmentID);   
-
-    if (appointments.data[7] == NULL)
-    {
-        My_Reports(appointmentID);
-    }
-    else
-    {
-        printf("Appointment %s already has a report", appointmentID);
-    }
     
 }
 

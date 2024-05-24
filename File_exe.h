@@ -178,6 +178,12 @@ void displaySystemMessage(char* message, int waitTime) {
 }
 
 ///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
+
+/*Print Column Vertically in a table
+
+char* options[] = {display_CaseName, display_DiagnosticComments}
+
+displayUnorderedOptions(CaseHeader, options, 2);*/
 void displayUnorderedOptions(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
@@ -262,8 +268,6 @@ void displayUnorderedOptions(char* header, char* options[], int noOptions)
     }
     printf("\n");
 }
-
-
 
 /*Print Column Vertically with index 
 1.
