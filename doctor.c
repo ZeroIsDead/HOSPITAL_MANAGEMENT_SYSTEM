@@ -2,6 +2,136 @@
 
 //char date[11] = 2024-06-01;
 
+void displayTabulatedData1(struct dataContainer2D data)
+{   const int minPadding = 5;
+    int numRow = data.y + 1;
+    // Allocate memory for numRow number of strings
+    char** displayedStrings = malloc (numRow * sizeof(char*));
+
+    // Find the maximum length of each column
+    int columnLengths[data.x];
+
+    for (int i=0; i<data.x; i++) 
+    {
+        int columnLength = strlen(data.fields[i]);
+
+        // Iterate over each row and find the maximum length of each column
+        for (int j=0; j<data.y; j++) 
+        {
+            int currentLength = strlen(data.data[j][i]);
+
+            if (currentLength > columnLength) 
+            {
+                columnLength = currentLength;
+            }
+        }
+
+        columnLengths[i] = columnLength;
+    }
+
+    // Create a buffer to store the formatted string
+    int bufferLength = 256;
+    char stringBuffer[bufferLength];
+
+    // Clear the string
+    stringBuffer[0] = '\0';
+
+    strncat(stringBuffer, "  No. |", 30);
+
+    // Format the Field Strings
+    // Iterate over each column and format the string
+    for (int i=0; i<data.x; i++) 
+    {
+        int totalPadding = columnLengths[i] - strlen(data.fields[i]) + minPadding;
+
+        // Calculate the left padding
+        int leftPadding = floor(totalPadding/2);
+        
+        // Add the left padding to the string
+        for (int n=0; n<leftPadding; n++) 
+        {
+            strncat(stringBuffer, " ", 2);
+        } 
+
+        // Add the field name to the string
+        strncat(stringBuffer, data.fields[i], strlen(data.fields[i]));
+
+        // Calculate the right padding
+        int rightPadding = totalPadding - leftPadding;
+
+        // Add the right padding to the string
+        for (int n=0; n<rightPadding; n++) {
+            strncat(stringBuffer, " ", 2);
+        } 
+
+        // Add the delimiter to the string
+        strncat(stringBuffer, "|", 2);
+    }
+
+    // Add the string to the array
+    displayedStrings[0] = strdup(stringBuffer);
+
+    // Format the Strings
+    // Iterate over each row and format the string
+    for (int i=0; i<data.y; i++) 
+    {
+        stringBuffer[0] = '\0';
+
+        sprintf(stringBuffer, "  %d.  |", i+1);
+
+        // Create the string
+        for (int j=0; j<data.x; j++) {
+            int totalPadding = columnLengths[j] - strlen(data.data[i][j]) + minPadding;
+
+            // Left Padding
+            int leftPadding = floor(totalPadding/2);
+            
+            // Add the left padding to the string
+            for (int n=0; n<leftPadding; n++) {
+                strncat(stringBuffer, " ", 2);
+            } 
+
+            // Add the field value to the string
+            strncat(stringBuffer, data.data[i][j], strlen(data.data[i][j]));
+
+            // Right Padding
+            int rightPadding = totalPadding - leftPadding;
+
+            // Add the right padding to the string
+            for (int n=0; n<rightPadding; n++) {
+                strncat(stringBuffer, " ", 2);
+            } 
+
+            // Add the delimiter to the string
+            strncat(stringBuffer, "|", 2);
+        }
+
+        // Add the string to the array
+        displayedStrings[i+1] = strdup(stringBuffer);
+    }
+
+    // Print the table
+    int tableLength = strlen(displayedStrings[0]) + 1;
+
+    // Print the top row
+    for (int i=0; i<tableLength; i++) {
+        printf("-");
+    }
+
+    // Print each row
+    for (int i=0; i<numRow; i++) {
+        printf("\n|%s\n", displayedStrings[i]);
+
+        // Print the bottom row
+        for (int i=0; i<tableLength; i++) {
+            printf("-");
+        }
+    }
+
+    // Free the memory
+    free(displayedStrings);
+}
+
 
 /////////////////////NOT MINE////////////////////////////////////////////
 char* getUserID() 
@@ -173,7 +303,7 @@ void prescriptionMenu(char* userID) {
 
     int choice = displayMenu(header, options, noOptions);
 
-    if (choice == appointmentIDs.x) {
+    if (choice == noOptions) {
         freeMalloc1D(appointmentIDs);
         freeMalloc2D(appointments);
         return;
@@ -421,136 +551,6 @@ void ammend_slots(struct dataContainer2D appointments, char* doctor_username, ch
 
 }
 //////////////////////////UTILITY/////////////////////////////////////////
-
-void displayTabulatedData1(struct dataContainer2D data)
-{   const int minPadding = 5;
-    int numRow = data.y + 1;
-    // Allocate memory for numRow number of strings
-    char** displayedStrings = malloc (numRow * sizeof(char*));
-
-    // Find the maximum length of each column
-    int columnLengths[data.x];
-
-    for (int i=0; i<data.x; i++) 
-    {
-        int columnLength = strlen(data.fields[i]);
-
-        // Iterate over each row and find the maximum length of each column
-        for (int j=0; j<data.y; j++) 
-        {
-            int currentLength = strlen(data.data[j][i]);
-
-            if (currentLength > columnLength) 
-            {
-                columnLength = currentLength;
-            }
-        }
-
-        columnLengths[i] = columnLength;
-    }
-
-    // Create a buffer to store the formatted string
-    int bufferLength = 256;
-    char stringBuffer[bufferLength];
-
-    // Clear the string
-    stringBuffer[0] = '\0';
-
-    strncat(stringBuffer, "  No. |", 30);
-
-    // Format the Field Strings
-    // Iterate over each column and format the string
-    for (int i=0; i<data.x; i++) 
-    {
-        int totalPadding = columnLengths[i] - strlen(data.fields[i]) + minPadding;
-
-        // Calculate the left padding
-        int leftPadding = floor(totalPadding/2);
-        
-        // Add the left padding to the string
-        for (int n=0; n<leftPadding; n++) 
-        {
-            strncat(stringBuffer, " ", 2);
-        } 
-
-        // Add the field name to the string
-        strncat(stringBuffer, data.fields[i], strlen(data.fields[i]));
-
-        // Calculate the right padding
-        int rightPadding = totalPadding - leftPadding;
-
-        // Add the right padding to the string
-        for (int n=0; n<rightPadding; n++) {
-            strncat(stringBuffer, " ", 2);
-        } 
-
-        // Add the delimiter to the string
-        strncat(stringBuffer, "|", 2);
-    }
-
-    // Add the string to the array
-    displayedStrings[0] = strdup(stringBuffer);
-
-    // Format the Strings
-    // Iterate over each row and format the string
-    for (int i=0; i<data.y; i++) 
-    {
-        stringBuffer[0] = '\0';
-
-        sprintf(stringBuffer, "  %d.  |", i+1);
-
-        // Create the string
-        for (int j=0; j<data.x; j++) {
-            int totalPadding = columnLengths[j] - strlen(data.data[i][j]) + minPadding;
-
-            // Left Padding
-            int leftPadding = floor(totalPadding/2);
-            
-            // Add the left padding to the string
-            for (int n=0; n<leftPadding; n++) {
-                strncat(stringBuffer, " ", 2);
-            } 
-
-            // Add the field value to the string
-            strncat(stringBuffer, data.data[i][j], strlen(data.data[i][j]));
-
-            // Right Padding
-            int rightPadding = totalPadding - leftPadding;
-
-            // Add the right padding to the string
-            for (int n=0; n<rightPadding; n++) {
-                strncat(stringBuffer, " ", 2);
-            } 
-
-            // Add the delimiter to the string
-            strncat(stringBuffer, "|", 2);
-        }
-
-        // Add the string to the array
-        displayedStrings[i+1] = strdup(stringBuffer);
-    }
-
-    // Print the table
-    int tableLength = strlen(displayedStrings[0]) + 1;
-
-    // Print the top row
-    for (int i=0; i<tableLength; i++) {
-        printf("-");
-    }
-
-    // Print each row
-    for (int i=0; i<numRow; i++) {
-        printf("\n|%s\n", displayedStrings[i]);
-
-        // Print the bottom row
-        for (int i=0; i<tableLength; i++) {
-            printf("-");
-        }
-    }
-
-    // Free the memory
-    free(displayedStrings);
-}
 
 char* getValidUsername()
 {
