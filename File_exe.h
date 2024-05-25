@@ -1089,7 +1089,7 @@ int writeData(const char* filename, struct dataContainer2D array)
         
     * - append_file("Users", 4, inputs);
 */
-int write_new_data(const char* filename, int numInputs, const char* inputs[]) 
+int write_new_data(const char* filename, int numInputs, char* inputs[]) 
 {
     
     /*Things to add in this Function:
