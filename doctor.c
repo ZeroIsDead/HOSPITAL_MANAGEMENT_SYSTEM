@@ -2,6 +2,8 @@
 
 //char date[11] = 2024-06-01;
 
+//////////////////////////////UTILITY///////////////////////////////////
+
 void displayTabulatedData1(struct dataContainer2D data)
 {   const int minPadding = 5;
     int numRow = data.y + 1;
@@ -132,8 +134,6 @@ void displayTabulatedData1(struct dataContainer2D data)
     free(displayedStrings);
 }
 
-
-/////////////////////NOT MINE////////////////////////////////////////////
 char* getUserID() 
 {
     char* username;
@@ -158,6 +158,55 @@ char* getUserID()
 
     return userData.data[0][0];
 }
+
+char* getValidUsername()
+{
+    char* username;
+    struct dataContainer1D userData;
+    int valid = 0;
+
+    do 
+    {
+        clearTerminal();
+        username = getString("Enter your username: ");
+        userData = queryKey("Staff_IDs", username);
+
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
+        {
+            displaySystemMessage("Username not found!", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    }while(!valid);
+
+    int valid2 = 0;
+
+    do
+    {
+        char* user_pw = getString("Enter your password: ");
+
+        if (!strcmp(user_pw, userData.data[1]))
+        {
+            valid2 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Wrong password, please try again!", 2);
+        }
+    }
+    while (!valid2);
+    
+    displaySystemMessage("Login successful!", 2);
+
+    freeMalloc1D(userData);
+
+    return username;
+}
+
+//////////////////////////////EHR///////////////////////////////////////////////////
 
 void displayAllergies(char* userID) {
     struct dataContainer2D data = queryFieldStrict("allergies", "PatientUserID", userID);
@@ -341,6 +390,8 @@ void EHRMenu()
         }
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////
 
 char* gettime(char* d_choices[], int index)
 {
@@ -550,63 +601,65 @@ void ammend_slots(struct dataContainer2D appointments, char* doctor_username, ch
     
 
 }
-//////////////////////////UTILITY/////////////////////////////////////////
 
-char* getValidUsername()
-{
-    char* username;
-    struct dataContainer1D userData;
-    int valid = 0;
-
-    do 
-    {
-        clearTerminal();
-        username = getString("Enter your username: ");
-        userData = queryKey("Staff_IDs", username);
-
-        if (userData.error == 1)  // userData.error will be 1 if the username is not found
-        {
-            displaySystemMessage("Username not found!", 2);
-        }
-        else
-        {
-            valid = 1;
-        }
-
-    }while(!valid);
-
-    int valid2 = 0;
-
-    do
-    {
-        char* user_pw = getString("Enter your password: ");
-
-        if (!strcmp(user_pw, userData.data[1]))
-        {
-            valid2 = 1;
-        }
-        else
-        {
-            displaySystemMessage("Wrong password, please try again!", 2);
-        }
-    }
-    while (!valid2);
+void View_My_Reports(char* doctor_username)
+{   
+    struct dataContainer2D  d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
+    char* d_reports[d_appointments.y+1];
     
-    displaySystemMessage("Login successful!", 2);
+    int i = 0;
+    while (i < d_appointments.y)
+    {
+        d_reports[i] = strdup(d_appointments.data[i][7]);
+        i++;
+    }
+    d_reports[d_appointments.y] = strdup("Back");
+    
+    //cooking for menu
+    char* header = "My Reports";
+    int noOptions = i+1;
 
-    freeMalloc1D(userData);
+    int result = displayMenu(header, d_reports, noOptions);
 
-    return username;
+    char* key = "r";
+    if (result > 0 && result < noOptions)
+    {
+        key = d_appointments.data[result-1][7];
+    }
+    else
+    {
+        return;
+    }
+
+    //cooking for report printing
+    struct dataContainer1D matched_report = queryKey("Reports", key);
+
+    char* CaseName = strdup(matched_report.data[1]);
+    char* DiagnosticComments = strdup(matched_report.data[2]);
+
+    char CaseHeader[256];
+    char display_CaseName[256];
+    char display_DiagnosticComments[1045];
+
+    sprintf(CaseHeader, "Report for appointment %s", matched_report.data[0]);
+    sprintf(display_CaseName, "Case Name: %s", CaseName);
+    sprintf(display_DiagnosticComments, "Diagnostic Comments: %s", DiagnosticComments);
+    char* options[] = {display_CaseName, display_DiagnosticComments};
+
+    clearTerminal();
+    displayUnorderedOptions(CaseHeader, options, 2);
+    printf("\n");
+    getString("PRESS ENTER TO RETURN...");
+
 }
 
-/////////////////////////PART OF MENU////////////////////////////
-void My_Reports(char* appointmentID) 
+void My_Reports(struct dataContainer1D appointment) 
 {
     char* CaseName;
     char* DiagnosticComments;
     
     clearTerminal();
-    printf("Report for appointment %s\n\n", appointmentID);
+    printf("Report for appointment %s\n\n", appointment.data[0]);
     CaseName = getString("Enter case name: ");
     DiagnosticComments = getString("Enter diagnostic comments: ");
 
@@ -616,7 +669,7 @@ void My_Reports(char* appointmentID)
     char display_DiagnosticComments[256];
 
 
-    sprintf(CaseHeader, "Report for appointment %s", appointmentID);
+    sprintf(CaseHeader, "Report for appointment %s", appointment.data[0]);
     sprintf(display_CaseName, "Case Name: %s", CaseName);
     sprintf(display_DiagnosticComments, "Diagnostic Comments: %s", DiagnosticComments);
     char* options[] = {display_CaseName, display_DiagnosticComments};
@@ -627,21 +680,24 @@ void My_Reports(char* appointmentID)
     char* comfirmation = getString("Are you sure you want to submit this report? (y/n): ");
     
     char reportID[8];
-    sprintf(reportID, "r%s", appointmentID);
+    sprintf(reportID, "r%s", appointment.data[0]);
 
     const char* input[] = {reportID, CaseName, DiagnosticComments}; 
-    
+
+    appointment.data[7] = reportID;    
+
     if ((strcmp(comfirmation, "y") == 0))
     {
         displaySystemMessage("Submitting Report....", 2);
         write_new_data("Reports", 3, input);
-        displaySystemMessage("Your Submission is Successful! Returning to Main Menu", 2);
+        updateData("Appointments", appointment.data);
+        displaySystemMessage("Your Submission is Successful! Returning to Main Menu...", 2);
     }
     else
-    {
+    {   
+        displaySystemMessage("Returning to Main Menu...", 2);
         return;
     }
-
 }
 
 void Write_New_Report()
@@ -673,11 +729,10 @@ void Write_New_Report()
 
     } while (!valid);
 
-    My_Reports(appointmentID);
-    
+    My_Reports(appointments);
 }
 
-void My_reports_menu()
+void My_reports_menu(char* doctor_username)
 {
     clearTerminal();
     char* header = "My Reports";
@@ -688,7 +743,7 @@ void My_reports_menu()
 
     if (result == 1) 
     {
-        // View_My_Reports();
+        View_My_Reports(doctor_username);
     } 
     else if (result == 2)
     {
@@ -947,8 +1002,8 @@ char* Availability(char* doctor_username)
 void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
-    char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability Check", "Back"};
-    int noOptions = 4;
+    char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability Check", "Create Appointment","Back"};
+    int noOptions = 5;
 
     while (1)
     {
@@ -968,6 +1023,11 @@ void my_schedule(char* doctor_username)
             Availability(doctor_username);   
         }
         else if (d_output == 4)
+        {
+            //create_appointment(doctor_username);
+            printf("Create Appointment\n");
+        }
+        else if (d_output == 5)
         {
             return;
         }
@@ -1002,7 +1062,7 @@ int doctor()
         }
         else if (d_output == 3)
         {
-            My_reports_menu();
+            My_reports_menu(doctor_username);
         }
         else if (d_output == 4)
         {
