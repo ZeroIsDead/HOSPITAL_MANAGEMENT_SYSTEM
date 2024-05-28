@@ -206,6 +206,152 @@ char* getValidUsername()
     return username;
 }
 
+int is_valid_date(const char* date)
+{
+  int year, month, day;
+
+  // Check length
+  if (strlen(date) != 10) {
+    return 0;
+  }
+
+  // Check format (yyyy-mm-dd)
+  if (date[4] != '-' || date[7] != '-') {
+    return 0;
+  }
+
+  // Extract year, month, day (assuming valid format)
+  sscanf(date, "%d-%d-%d", &year, &month, &day);
+
+  // Check year range (adjust as needed)
+  if (year < 2024 || year > 2025) {
+    printf("We in 2024 only!");
+    return 0;
+  }
+
+  // Check month validity
+  if (month < 1 || month > 12) {
+    return 0;
+  }
+
+  // Check day validity (basic check, can be improved for leap years)
+  if (day < 1 || day > 31) {
+    return 0;
+  }
+
+  // Further checks for specific month day limits (e.g., February) can be added here
+
+  return 1;
+}
+
+char* get_new_time()
+{
+    //getinput
+    int new_start_hour;
+    int new_start_minutes;
+    int new_end_hour;
+    int new_end_minutes;
+    
+    ///START HOUR///
+    int valid = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        sprintf(new_time_format, " [ _ _ : _ _ ]\nEnter New Hour ( 0-23 ): ");
+        new_start_hour = getInt(new_time_format);
+
+        if (new_start_hour > 0 && new_start_hour < 24)
+        {
+            valid = 1;
+        }
+        else
+        {
+            displaySystemMessage("Invalid Time input (24h format only)!", 2);
+        }
+
+    }while(!valid);
+
+    ///START MINUTES///
+    int valid2 = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        sprintf(new_time_format, " [ %02d: _ _ ]\nEnter New Minutes: ", new_start_hour);
+        new_start_minutes = getInt(new_time_format);
+
+        if (new_start_minutes >= 0 && new_start_minutes < 60)
+        {
+            valid2 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Invalid Time input (0-59) only)!", 2);
+        }
+
+    }while(!valid2);
+
+    ///END HOUR///
+    int valid3 = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        printf("Slots start : %02d:%02d\n", new_start_hour, new_start_minutes);
+        sprintf(new_time_format, " [ _ _ : _ _ ]\nEnter End Hour ( %02d-23 ): ", new_start_hour);
+        new_end_hour = getInt(new_time_format);
+
+        if (new_end_hour > 0 && new_end_hour < 24 && new_end_hour > new_start_hour) 
+        {
+            valid3 = 1;
+        }
+        else
+        {   
+            char new_error_message[256];
+            sprintf(new_error_message, " Invalid Time input! Your new slots can ends at ( %02d-23 ) only! : ",new_start_hour);
+            displaySystemMessage(new_error_message, 2);
+        }
+
+    }while(!valid3);
+
+    ///END MINUTES///
+    int valid4 = 0;
+    do 
+    {   
+        clearTerminal();
+        char new_time_format[256];
+        printf("Slots start at: %02d:%02d\n", new_start_hour, new_start_minutes);
+        sprintf(new_time_format, " [ %02d: _ _ ]\nEnter New Minutes: ", new_end_hour);
+        new_end_minutes = getInt(new_time_format);
+
+        if (new_end_minutes >= 0 && new_end_minutes < 60)
+        {
+            valid4 = 1;
+        }
+        else
+        {
+            displaySystemMessage("Invalid Time input (0-59) only)!", 2);
+        }
+
+    }while(!valid4);
+
+    clearTerminal();
+    printf("New slots start at:[ %02d:%02d ]\n", new_start_hour, new_start_minutes);
+    printf("New slots ends at: [ %02d:%02d ]\n", new_end_hour, new_end_minutes);
+
+    char new_time[256];
+    sprintf(new_time, "%02d:%02d-%02d:%02d", new_start_hour, new_start_minutes, new_end_hour, new_end_minutes);
+
+    char* new_time_ptr = malloc(strlen(new_time) + 1);
+    if(new_time_ptr == NULL) 
+    {
+        displaySystemMessage("Memory allocation failed", 2);
+        return NULL;
+    }
+    strcpy(new_time_ptr, new_time);
+    return new_time_ptr;
+}
 //////////////////////////////EHR///////////////////////////////////////////////////
 
 void displayAllergies(char* userID) {
@@ -619,6 +765,8 @@ void View_My_Reports(char* doctor_username)
     char* header = "My Reports";
     int noOptions = i+1;
 
+    //print menu
+    clearTerminal();
     int result = displayMenu(header, d_reports, noOptions);
 
     char* key = "r";
@@ -682,7 +830,7 @@ void My_Reports(struct dataContainer1D appointment)
     char reportID[8];
     sprintf(reportID, "r%s", appointment.data[0]);
 
-    const char* input[] = {reportID, CaseName, DiagnosticComments}; 
+    char* input[] = {reportID, CaseName, DiagnosticComments}; 
 
     appointment.data[7] = reportID;    
 
@@ -755,6 +903,56 @@ void My_reports_menu(char* doctor_username)
     }
 }
 
+void create_new_Schedule(char* doctor_username)
+{   
+    int valid_date = 0;
+    char* new_date;
+    do
+    {    
+        clearTerminal();
+        new_date = getString("Enter date for new schedule (yyyy-mm-dd): ");
+        
+        struct dataContainer2D existing_schedule = queryFieldStrict("doctorSchedule", "Date", new_date);
+
+        if (is_valid_date(new_date)) 
+        {
+            if (existing_schedule.error == 1)
+            {
+                valid_date = 1;
+            }
+            else
+            {
+                displaySystemMessage("You have already created a schedule for this day!\nGo to <Change My Schedule>", 2);
+                clearTerminal();
+                printf("\n\n");
+                getString("Press any key to return...");
+
+                freeMalloc2D(existing_schedule);
+
+                return;
+            }
+        }
+        else 
+        {
+            displaySystemMessage("Invalid date!!!", 2);
+        }
+    }while(!valid_date);
+
+    //do prettier UI afterwards
+    char* new_time1 = get_new_time();
+    getString("\n\nPress any key to continue...");
+    char* new_time2 = get_new_time();
+    getString("\n\nPress any key to continue...");
+    char* new_time3 = get_new_time();
+    getString("\n\nPress any key to continue...");
+    char* new_time4 = get_new_time();
+    getString("\n\nPress any key to continue...");
+
+
+    char* inputs[] = {doctor_username, new_time1, new_time2, new_time3, new_time4, new_date};
+    write_new_data("doctorSchedule", 6 , inputs);
+}
+
 //delete entire day
 void delete_entire_day(struct dataContainer2D appointments, char* doctor_username, char* search_date)
 {   
@@ -763,7 +961,7 @@ void delete_entire_day(struct dataContainer2D appointments, char* doctor_usernam
     printf("\nDo you sure to remove your entire schdule for this day?( y for yes / Press anykey to return)\n");
     char* input = getString("Your input: ");
 
-    if (strcmp(input, "y") == 0)
+    if (strcmp(input, "y") == 0 || strcmp(input, "Y") == 0)
     {
         char* username = getString("Enter your username for comfirmation (Press anykey to return): ");
 
@@ -777,7 +975,7 @@ void delete_entire_day(struct dataContainer2D appointments, char* doctor_usernam
             printf("\n\n");
             getString("WRONG USERNAME, PRESS ENTER TO RETURN...");
         }
-        
+    
     }
     else
     {
@@ -847,7 +1045,7 @@ void delete_slots(struct dataContainer2D appointments, char* doctor_username, ch
 void append_slots_menu(struct dataContainer2D appointments, char* doctor_username, char* search_date)
 {
     char* d_menu = "What you want to do?";
-    char* d_choices[] = {"Ammend Selected Slots", "Delete Slots","Mark Unavailable For a Day", "Return to My Schedule"};
+    char* d_choices[] = {"Ammend Selected Slots", "Delete Slots","Delete Entire Day", "Return to My Schedule"};
     int noOptions = 4;
 
     while (1)
@@ -959,22 +1157,29 @@ char* Availability(char* doctor_username)
     struct dataContainer2D d_appointments;
     struct dataContainer2D buffer_appointments;
     struct dataContainer2D appointments;
+    
     char* search_date;
     int valid = 0;
-
     do
     {   
         clearTerminal();
         search_date = getString("Please enter the date you wish to read (yyyy-mm-dd): ");
         d_appointments = queryFieldStrict("doctorSchedule", "Date", search_date);
 
-        if (d_appointments.error == 1)
+        if (is_valid_date(search_date)) 
         {
-            displaySystemMessage("No appointment for that day!", 2);
+            if (d_appointments.error == 1)
+            {
+               displaySystemMessage("No schedule for this day!", 2);
+            }
+            else
+            {
+                valid = 1;
+            }
         }
-        else
+        else 
         {
-            valid = 1;
+            displaySystemMessage("Invalid date!!!", 2);
         }
 
     }while(!valid);
@@ -999,10 +1204,36 @@ char* Availability(char* doctor_username)
     
 }
 
+void availability_menu(char* doctor_username)
+{
+    char* d_menu = "My Availability";
+    char* d_choices[] = {"Manage Existing Schedule", "New Schedule","Back"};
+    int noOptions = 3;
+
+    while (1)
+    {
+        clearTerminal();
+        int d_output = displayMenu(d_menu, d_choices, noOptions);
+
+        if (d_output == 1)
+        {
+            Availability(doctor_username);
+        }
+        else if (d_output == 2)
+        {   
+            create_new_Schedule(doctor_username);
+        }
+        else if (d_output == 3)
+        {
+            return;
+        }
+    }
+}
+
 void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
-    char* d_choices[] = {"All Appointments History", "Search Appointments", "Availability Check", "Create Appointment","Back"};
+    char* d_choices[] = {"All Appointments History", "Search Appointments", "Create Appointment", "Manage Availability", "Back"};
     int noOptions = 5;
 
     while (1)
@@ -1020,12 +1251,13 @@ void my_schedule(char* doctor_username)
         }
         else if (d_output == 3)
         {
-            Availability(doctor_username);   
+            //create_appointment(doctor_username);
+            printf("Create Appointment\n");
         }
         else if (d_output == 4)
         {
             //create_appointment(doctor_username);
-            printf("Create Appointment\n");
+            availability_menu(doctor_username); 
         }
         else if (d_output == 5)
         {

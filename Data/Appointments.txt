@@ -11,4 +11,4 @@ apt009;drJohnson;patClark;109;17:00-18:00;2024-06-05;pres009;rapt009;
 apt010;drMiller;patHill;110;09:00-10:00;2024-06-05;pres010;rapt010;
 apt011;drLee;patGreen;111;10:00-11:00;2024-06-06;pres011;rapt011;
 apt012;drThompson;patWhite;112;11:00-12:00;2024-06-06;pres012;rapt012;
-apt013;drJohnson;patEvans;113;12:00-13:00;2024-06-06;pres013;NONE;
+apt013;drJohnson;patEvans;113;12:00-13:00;2024-06-06;pres013;;
