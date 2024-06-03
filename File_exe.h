@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
-/*ULTILITIES*/
+///////////////////////////////////ULTILITIES///////////////////////////////////
 
 /*This function open the file for you, check the existance of file in the data folder, if file doesnt exist, raise a wrong filename error and prevent creating a new file, lastly return a file pointer of the file you opened.
 * 
@@ -108,7 +108,8 @@ void clearTerminal()
     printf("\e[1;1H\e[2J");
 }
 
-char* getString(char* prompt) {
+char* getString(char* prompt) 
+{
     int bufferLength = 256;
     char buffer[bufferLength];
 
@@ -121,7 +122,8 @@ char* getString(char* prompt) {
     return strdup(buffer);
 }
 
-int getInt(char* prompt) {
+int getInt(char* prompt) 
+{
     int bufferLength = 256;
     char buffer[bufferLength];
 
@@ -143,7 +145,8 @@ int getInt(char* prompt) {
     return -1;
 }
 
-float getFloat(char* prompt) {
+float getFloat(char* prompt) 
+{
     int bufferLength = 256;
     char buffer[bufferLength];
 
@@ -170,14 +173,15 @@ float getFloat(char* prompt) {
     return -1.0;
 }
 
+///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
+
+/*Display a system message on the terminal and wait for a specified duration before clearing the terminal.*/
 void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
     printf(message);
     sleep(waitTime);
     clearTerminal();
 }
-
-///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
 /*Print Column Vertically in a table
 
@@ -544,7 +548,8 @@ void freeMalloc2D(struct dataContainer2D pointer)
 }
 
 // Frees the memory allocated for the dataContainer1D struct
-void freeMalloc1D(struct dataContainer1D pointer) {
+void freeMalloc1D(struct dataContainer1D pointer) 
+{
     free(pointer.data);
     free(pointer.fields);
 }
