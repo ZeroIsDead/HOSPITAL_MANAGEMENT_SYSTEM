@@ -1,2 +1,1 @@
-
-        printf("Update\n");
+  printf("%d\n", bookedAppointements.error);

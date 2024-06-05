@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
-/*ULTILITIES*/
+///////////////////////////////////ULTILITIES///////////////////////////////////
 
 /*This function open the file for you, check the existance of file in the data folder, if file doesnt exist, raise a wrong filename error and prevent creating a new file, lastly return a file pointer of the file you opened.
 * 
@@ -108,7 +108,8 @@ void clearTerminal()
     printf("\e[1;1H\e[2J");
 }
 
-char* getString(char* prompt) {
+char* getString(char* prompt) 
+{
     int bufferLength = 256;
     char buffer[bufferLength];
 
@@ -121,7 +122,8 @@ char* getString(char* prompt) {
     return strdup(buffer);
 }
 
-int getInt(char* prompt) {
+int getInt(char* prompt) 
+{
     int bufferLength = 256;
     char buffer[bufferLength];
 
@@ -143,7 +145,8 @@ int getInt(char* prompt) {
     return -1;
 }
 
-float getFloat(char* prompt) {
+float getFloat(char* prompt) 
+{
     int bufferLength = 256;
     char buffer[bufferLength];
 
@@ -170,6 +173,9 @@ float getFloat(char* prompt) {
     return -1.0;
 }
 
+///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
+
+/*Display a system message on the terminal and wait for a specified duration before clearing the terminal.*/
 void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
     printf(message);
@@ -177,7 +183,102 @@ void displaySystemMessage(char* message, int waitTime) {
     clearTerminal();
 }
 
+/*Print Column Vertically in a table
 
+char* options[] = {display_CaseName, display_DiagnosticComments}
+
+displayUnorderedOptions(CaseHeader, options, 2);*/
+void displayUnorderedOptions(char* header, char* options[], int noOptions) 
+{
+    // get max sizeof option string
+    int maxLength = strlen(header);
+
+    for (int i=0; i<noOptions; i++) {
+        // get length
+        int currentLength = strlen(options[i]);
+    
+        if (currentLength > maxLength) {
+            maxLength = currentLength;
+        }
+    }
+
+    const int horizontalpadding = 15;
+    int borderLength = maxLength + 2 * horizontalpadding;
+
+    // Top  Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // Header
+    const int verticalPadding = 1;
+
+    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
+    
+    const int borderCount = 2;
+    const char character = '|';
+    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
+
+    printf("%c", character);
+
+    for (int i=0; i<headerPadding; i++) {
+        printf(" ");
+    }
+
+    printf(header);
+
+    for (int i=0; i<rightPadding; i++) {
+        printf(" ");
+    }
+
+    printf("%c", character);
+
+    printf("\n");
+
+    // Middle Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    const int leftPadding = 5;
+
+    // Options
+    for (int i=0; i<noOptions; i++) {
+        const char* text = options[i];
+        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
+
+        printf("%c", character);
+
+        for (int i=0; i<leftPadding; i++) {
+            printf(" ");
+        }
+
+        printf(text);
+
+        for (int i=0; i<rightPadding; i++) {
+            printf(" ");
+        }
+
+        printf("%c", character);
+
+        printf("\n");
+    }
+
+    // Bottom Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
+
+/*Print Column Vertically with index 
+1.
+2.
+3.
+
+*/
 void displayOptions(char* header, char* options[], int noOptions) 
 {
     // get max sizeof option string
@@ -270,8 +371,6 @@ void displayOptions(char* header, char* options[], int noOptions)
     }
     printf("\n");
 }
-
-///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
 /*char* options[] = {"ar", "a", "b", "C"};
 
@@ -449,7 +548,8 @@ void freeMalloc2D(struct dataContainer2D pointer)
 }
 
 // Frees the memory allocated for the dataContainer1D struct
-void freeMalloc1D(struct dataContainer1D pointer) {
+void freeMalloc1D(struct dataContainer1D pointer) 
+{
     free(pointer.data);
     free(pointer.fields);
 }
@@ -994,7 +1094,7 @@ int writeData(const char* filename, struct dataContainer2D array)
         
     * - append_file("Users", 4, inputs);
 */
-int write_new_data(const char* filename, int numInputs, const char* inputs[]) 
+int write_new_data(const char* filename, int numInputs, char* inputs[]) 
 {
     
     /*Things to add in this Function:
@@ -1111,7 +1211,6 @@ void updateData(const char* filename, char** relaying_array)
     return writeData(filename, master);
 }
 
-
 /*Update file that dont have primary key
  
 *Parameter: 
@@ -1211,4 +1310,52 @@ int deleteKey(const char* filename, char* unique_key)
     return writeData(filename, master);
 }
 
+/*Delete existing record in existing file using two keys:
+
+*Parameter:
+    * - filename: name of the file without .txt
+    * - first_key: first key of the record you want to delete ( example: username )
+    * - second_key: the second key you want to search (example: date)
+        -- data types : char* second_key;
+
+    * - second_key_index: the index (an integer) of the second key 
+        -- data types : int second_key_index;
+
+Sample of implementation:
+When using this function, you should be dealing with the file that dont have unqiue primary key.
+Thus, 2 keys is needed to determine the single line you wanted to delete. 
+In this case, you need to know the index of the second key in the txt file.
+
+assumption: first_key has index [0] in the txt file
+
+*1. Get your the first and second key of the lines of record you want to delete
+
+*2. call: delete_non_primary_Key("filename_without.txt", first_key, second_key, second_key_index);
+*/
+int delete_non_primary_Key(const char* filename, char* first_key, char* second_key, int second_key_index) 
+{
+    struct dataContainer2D master = getData(filename);
+    
+    master.y = master.y - 1;
+
+    for (int i=0; i<master.y; i++) 
+    {   
+        //IF FOUND the unique
+        if(!strncmp(master.data[i][0], first_key, 255))
+        {   
+            if (!strncmp(master.data[i][second_key_index], second_key, 255))
+            {
+                //delete that record
+                free(master.data[i]);
+                for (int j=i; j<master.y; j++)
+                {
+                    master.data[j] = master.data[j+1];
+                }
+            }
+                
+        }
+    }    
+
+    return writeData(filename, master);
+}
 /*___________________________Functions that you can call ends here_________________________________________________________________________*/

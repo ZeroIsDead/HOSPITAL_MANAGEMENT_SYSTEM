@@ -203,41 +203,53 @@ void NAvailableDoctor(){
     struct  dataContainer2D bookedAppointements = queryFieldStrict("Appointments", "StaffUserID", doctorName);
     bookedAppointements = filterDataContainer(bookedAppointements, "Date", date);
 
-    int count = 0;
-    
-    for (int i = 0; i < bookedAppointements.y; i++){
-        for (int j = 1; j < 5; j++){
-            if ( strcmp(bookedAppointements.data[i][4],doctorTimeDay.data[0][j]) == 0){
-                doctorTimeDay.data[0][j] = "0";
-                count++;
-            }
-        }
-    }
-    freeMalloc2D(bookedAppointements);
-    freeMalloc2D(doctorSchedule);
-    freeMalloc1D(doctorWorkingDate);
-
-    printf("\n\n");
-    
-    if (count == 4){
-        displaySystemMessage("All time slots books, Please pick another date....",5);
-        freeMalloc2D(bookedAppointements);
-        main();
-        
-    }
-    else{
-        clearTerminal();
-        printf("Available Time on %s for Doctor %s\n", date, doctorName);
+    if(bookedAppointements.error == 1){
         displayTabulatedData(doctorTimeDay);
+        freeMalloc2D(bookedAppointements);
+        freeMalloc2D(doctorSchedule);
+        freeMalloc1D(doctorWorkingDate);
         freeMalloc2D(bookedAppointements);
         NurseBack();
         NurseMenue(NurseName);
     }
-
+    else{
+        int count = 0;
+        
+        for (int i = 0; i < bookedAppointements.y; i++){
+            for (int j = 1; j < 5; j++){
+                if ( strcmp(bookedAppointements.data[i][4],doctorTimeDay.data[0][j]) == 0){
+                    doctorTimeDay.data[0][j] = "0";
+                    count++;
+                }
+            }
+        }
+        freeMalloc2D(bookedAppointements);
+        freeMalloc2D(doctorSchedule);
+        freeMalloc1D(doctorWorkingDate);
+        
+        printf("\n\n");
+        
+        if (count == 4){
+            displaySystemMessage("All time slots books, Please pick another date....",5);
+            freeMalloc2D(bookedAppointements);
+            main();
+            
+        }
+        else{
+            clearTerminal();
+            printf("Available Time on %s for Doctor %s\n", date, doctorName);
+            displayTabulatedData(doctorTimeDay);
+            freeMalloc2D(bookedAppointements);
+            NurseBack();
+            NurseMenue(NurseName);
+        }
+    }
+    
 }
 
 //View Current inventory
 void NViewStationInventory(){
+    clearTerminal();
     struct dataContainer2D currentInventory = getData("Inventory");
     displayTabulatedData(currentInventory);
     NurseBack();

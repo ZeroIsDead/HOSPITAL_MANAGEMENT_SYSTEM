@@ -340,7 +340,7 @@ void prescriptionMenu(char* userID) {
 
     int choice = displayMenu(header, options, noOptions);
 
-    if (choice == appointmentIDs.x) {
+    if (choice == noOptions) {
         freeMalloc1D(appointmentIDs);
         freeMalloc2D(appointments);
         return;
