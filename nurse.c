@@ -156,7 +156,7 @@ void NCurrentDoctorSchedules(){
     // Returning to the Nurse Menu
     else{
 
-        displaySystemMessage("Loading Current Doctor Schedule Menue....", 2);
+        displaySystemMessage("Loading Main Nurse Menue....", 2);
         NurseMenue(NurseName);
         return;
     }
@@ -164,7 +164,76 @@ void NCurrentDoctorSchedules(){
 
 
 void NAvailableDoctor(){
-    printf("Available Doctor\n");
+    char* doctorName;
+    struct dataContainer2D doctorSchedule;
+    
+    do{
+        
+        doctorName = getString("Enter the Doctor name: ");
+
+        doctorSchedule = queryFieldStrict("doctorSchedule", "DoctorID", doctorName);
+        if (doctorSchedule.error == 1){
+            displaySystemMessage("Doctor does not exist in the database, please enter a valid name....",2);
+        }
+        else{
+            break;
+        }
+    }
+    while(1);
+    
+    struct dataContainer1D doctorWorkingDate = getFieldValues(doctorSchedule, "Date");
+    
+    char* date;
+    struct dataContainer2D doctorTimeDay;
+    
+    do{
+        displayOptions("Doctor Dates",doctorWorkingDate.data,doctorWorkingDate.x);
+        date = getString("Please enter the date you are looking for: ");
+        doctorTimeDay = filterDataContainer(doctorSchedule, "Date", date);
+
+        if(doctorTimeDay.error == 1){
+            displaySystemMessage("Either Doctor is not working on this day or Entered date is invalid...", 2);
+        }
+        else{
+            break;
+        }
+    }
+    while(1);
+
+    struct  dataContainer2D bookedAppointements = queryFieldStrict("Appointments", "StaffUserID", doctorName);
+    bookedAppointements = filterDataContainer(bookedAppointements, "Date", date);
+
+    int count = 0;
+    
+    for (int i = 0; i < bookedAppointements.y; i++){
+        for (int j = 1; j < 5; j++){
+            if ( strcmp(bookedAppointements.data[i][4],doctorTimeDay.data[0][j]) == 0){
+                doctorTimeDay.data[0][j] = "0";
+                count++;
+            }
+        }
+    }
+    freeMalloc2D(bookedAppointements);
+    freeMalloc2D(doctorSchedule);
+    freeMalloc1D(doctorWorkingDate);
+
+    printf("\n\n");
+    
+    if (count == 4){
+        displaySystemMessage("All time slots books, Please pick another date....",5);
+        freeMalloc2D(bookedAppointements);
+        main();
+        
+    }
+    else{
+        clearTerminal();
+        printf("Available Time on %s for Doctor %s\n", date, doctorName);
+        displayTabulatedData(doctorTimeDay);
+        freeMalloc2D(bookedAppointements);
+        NurseBack();
+        NurseMenue(NurseName);
+    }
+
 }
 
 //View Current inventory
@@ -176,15 +245,6 @@ void NViewStationInventory(){
     freeMalloc2D(currentInventory);
     NurseMenue(NurseName);
 }
-
-void NViewPatientReport(){
-    printf("View Patient Report\n");
-}
-
-void NViewUnitReport(){
-    printf("View Unit Report\n");
-}
-
 
 void NurseAddNewIteam(){
     
@@ -262,8 +322,40 @@ void NurseAddNewIteam(){
 
 //Function to Update Existing
 void NUpdateExistingInventory(){
-
+    
+    //Getting medId from user
+    char* medId = getString("Enter the medicineID you want to update: ");
+    struct dataContainer1D iteam = queryKey("Inventory",medId);
+    
+    //Error handling is iteam medId is not found;
+    if (iteam.error == 1){
+        displaySystemMessage("Iteam not found",2);
+        freeMalloc1D(iteam);
+        NUpdateExistingInventory();
+        return;
+    }
+    else{
+        
+        //Getting new quantity from user
+        int newQuantity = getInt("Enter the new quantity of iteams: ");
+        
+        //Converting string to int
+        char strNewQutity [5];
+        itoa(newQuantity, strNewQutity, 10);
+        
+        //Updateing iteam with new Quantity
+        iteam.data[4] = strNewQutity;
+        updateData("Inventory", iteam.data);
+        
+        freeMalloc1D(iteam);
+        
+        //Returning to Nurse Main Menue
+        displaySystemMessage("Returning you to main menue",2);
+        NurseMenue(NurseName);
+        return;
+    }
 }
+
 
 void NUpdateStationInventory(){
     char* InventoryBanner = "Nurse Inventory Management";
@@ -280,7 +372,7 @@ void NUpdateStationInventory(){
 
     // Update existing iteam
     else if (output == 2){
-        printf("Update\n");
+        NUpdateExistingInventory();
     }
 
     //Back to Nurse Menue 
@@ -291,13 +383,22 @@ void NUpdateStationInventory(){
     }
 }
 
+void NViewPatientReport(){
+    printf("View Patient Report\n");
+}
+
+void NViewUnitReport(){
+    printf("View Unit Report\n");
+}
+
+
 
 void NurseMenue(char* name){
     clearTerminal();
     char* header = NurseWelcomeMessage(name);
     char* options[] = {"Current Doctor Schedules","Available Doctor","View Station Inventory","Update Station Inventory","View Patient Report","View Unit Report","Log Out"};
 
-    int output = displayMenu(header, options, 7);
+    int output = displayMenu(header, options, 7);  
     clearTerminal();
     
     if (output == 1){
