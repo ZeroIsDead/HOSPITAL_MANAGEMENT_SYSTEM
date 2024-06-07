@@ -1,12 +1,12 @@
 #include "File_exe.h"
 
-
-#define MAX_LINE_LENGTH 256
-
-   
-
 int main(){
 
+    struct dataContainer2D d_Inventory = queryFieldStrict("Inventory", "MedicineID", "med001");
 
-    
+    clearTerminal();
+    displayTabulatedData(d_Inventory);
+    freeMalloc2D(d_Inventory);
+
+
 }
