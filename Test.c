@@ -1,196 +1,212 @@
 #include "File_exe.h"
 
-char* get_new_time()
+char* getUserID() 
 {
-    //getinput
-    int new_start_hour;
-    int new_start_minutes;
-    int new_end_hour;
-    int new_end_minutes;
-    
-    ///START HOUR///
+    char* username;
+    struct dataContainer2D userData;
     int valid = 0;
-    do 
-    {   
-        clearTerminal();
-        char new_time_format[256];
-        sprintf(new_time_format, " [ _ _ : _ _ ]\nEnter New Hour ( 0-23 ): ");
-        new_start_hour = getInt(new_time_format);
 
-        if (new_start_hour > 0 && new_start_hour < 24)
+    do 
+    {
+        username = getString("Enter patient`s name: ");
+        userData = queryFieldStrict("Patient_IDs", "Name" ,username);
+
+        if (userData.error == 1)  // userData.error will be 1 if the username is not found
         {
-            valid = 1;
+            displaySystemMessage("Username not found!", 2);
         }
         else
         {
-            displaySystemMessage("Invalid Time input (24h format only)!", 2);
+            valid = 1;
+        }
+
+    } while (!valid);
+
+    return userData.data[0][0];
+}
+
+void create_appointment(char* doctor_username)
+{   
+    struct dataContainer2D d_appointments, d_appointment;
+    char* previous_appointmentID;
+    char new_appointmentID[256];
+    int prev_count;
+    int error;
+    
+    //get date
+    char* search_date;
+    int valid = 0;
+
+    d_appointments = queryFieldStrict("doctorSchedule", "DoctorID", doctor_username);
+
+    if (d_appointments.error) 
+    {
+        displaySystemMessage("Error , no records found", 2);
+    }
+
+
+    do
+    {   
+        clearTerminal();
+        search_date = getString("Date of new appointment (yyyy-mm-dd) : ");
+        d_appointment = filterDataContainer(d_appointments, "Date", search_date);
+
+        if (d_appointment.error)
+        {
+            displaySystemMessage("You have appointment for that day.", 2);
+        }
+        else
+        {
+            printf("You have no appointment for that day.\n");
+            valid = 1;
         }
 
     }while(!valid);
 
-    ///START MINUTES///
-    int valid2 = 0;
-    do 
-    {   
-        clearTerminal();
-        char new_time_format[256];
-        sprintf(new_time_format, " [ %02d: _ _ ]\nEnter New Minutes: ", new_start_hour);
-        new_start_minutes = getInt(new_time_format);
 
-        if (new_start_minutes >= 0 && new_start_minutes < 60)
-        {
-            valid2 = 1;
-        }
-        else
-        {
-            displaySystemMessage("Invalid Time input (0-59) only)!", 2);
-        }
-
-    }while(!valid2);
-
-    ///END HOUR///
-    int valid3 = 0;
-    do 
-    {   
-        clearTerminal();
-        char new_time_format[256];
-        printf("Slots start : %02d:%02d\n", new_start_hour, new_start_minutes);
-        sprintf(new_time_format, " [ _ _ : _ _ ]\nEnter End Hour ( %02d-23 ): ", new_start_hour);
-        new_end_hour = getInt(new_time_format);
-
-        if (new_end_hour > 0 && new_end_hour < 24 && new_end_hour > new_start_hour) 
-        {
-            valid3 = 1;
-        }
-        else
-        {   
-            char new_error_message[256];
-            sprintf(new_error_message, " Invalid Time input! Your new slots can ends at ( %02d-23 ) only! : ",new_start_hour);
-            displaySystemMessage(new_error_message, 2);
-        }
-
-    }while(!valid3);
-
-    ///END MINUTES///
-    int valid4 = 0;
-    do 
-    {   
-        clearTerminal();
-        char new_time_format[256];
-        printf("Slots start at: %02d:%02d\n", new_start_hour, new_start_minutes);
-        sprintf(new_time_format, " [ %02d: _ _ ]\nEnter New Minutes: ", new_end_hour);
-        new_end_minutes = getInt(new_time_format);
-
-        if (new_end_minutes >= 0 && new_end_minutes < 60)
-        {
-            valid4 = 1;
-        }
-        else
-        {
-            displaySystemMessage("Invalid Time input (0-59) only)!", 2);
-        }
-
-    }while(!valid4);
-
-    clearTerminal();
-    printf("New slots start at:[ %02d:%02d ]\n", new_start_hour, new_start_minutes);
-    printf("New slots ends at: [ %02d:%02d ]\n", new_end_hour, new_end_minutes);
-
-    char new_time[256];
-    sprintf(new_time, "%02d:%02d-%02d:%02d", new_start_hour, new_start_minutes, new_end_hour, new_end_minutes);
-
-    char* new_time_ptr = malloc(strlen(new_time) + 1);
-    if(new_time_ptr == NULL) 
+    //Generate new appointmentID
+    struct dataContainer2D all_appointments;
+    all_appointments = getData("Appointments");
+    if (all_appointments.error == 1)
     {
-        displaySystemMessage("Memory allocation failed", 2);
-        return NULL;
+         displaySystemMessage("Error, no records found");
     }
-    strcpy(new_time_ptr, new_time);
-    return new_time_ptr;
-}
+    previous_appointmentID = strdup(all_appointments.data[all_appointments.y-1][0]);
+    prev_count = atoi(previous_appointmentID+3);
+    sprintf(new_appointmentID, "apt%03d", prev_count+1);
+    freeMalloc2D(all_appointments);
+
+    
+
+    //cooking for header
+    char display_new_appoinmentID[256];
+    sprintf(display_new_appoinmentID,"New Appointment: %s", new_appointmentID);
+
+    //Get Paitient ID
+    //clearTerminal();
+    char* patientID = getUserID();
 
 
+//     valid = 0;
+//     char* room;
+//     char* confirm;
+//     char* input1[] = {doctor_username, patientID, search_date};
+//     do {
+//         //Get Room
+//         clearTerminal();
+//         char* input1[] = {doctor_username, patientID, search_date};
+//         displayUnorderedOptions(display_new_appoinmentID, input1, 3);
+//         room = getString("Enter Room: ");
 
-void create_new_Schedule(char* doctor_username)
-{   
-    int valid_date = 0;
-    char* new_date;
-    do
-    {    
-        clearTerminal();
-        new_date = getString("Enter date for new schedule (yyyy-mm-dd): ");
+//         //printing
+//         clearTerminal();
+//         char* input2[] = {doctor_username, patientID, room, search_date};
+//         displayUnorderedOptions(display_new_appoinmentID, input2, 4);
         
-        struct dataContainer2D existing_schedule = queryFieldStrict("doctorSchedule", "Date", new_date);
+//         confirm = getString("Confirm (Y|N): ");
+        
+//         if (tolower(confirm[0]) == 'y') {
+//             valid = 1;
+//         }
 
-        if (is_valid_date(new_date)) 
-        {
-            if (existing_schedule.error == 1)
-            {
-                valid_date = 1;
-            }
-            else
-            {
-                displaySystemMessage("You have already created a schedule for this day!\nGo to <Change My Schedule>", 2);
-                clearTerminal();
-                printf("\n\n");
-                getString("Press any key to return...");
+//     } while (!valid);
 
-                freeMalloc2D(existing_schedule);
+    
 
-                return;
-            }
-        }
-        else 
-        {
-            displaySystemMessage("Invalid date!!!", 2);
-        }
-    }while(!valid_date);
+//     char* fields[] = {"TimeSlots1", "TimeSlots2", "TimeSlots3", "TimeSlots4"};
+//     struct dataContainer2D d_timeslots = shortenDataContainer(d_appointment, fields, 4);
 
-    //do prettier UI afterwards
-    char* new_time1 = get_new_time();
-    getString("\n\nPress any key to continue...");
-    char* new_time2 = get_new_time();
-    getString("\n\nPress any key to continue...");
-    char* new_time3 = get_new_time();
-    getString("\n\nPress any key to continue...");
-    char* new_time4 = get_new_time();
-    getString("\n\nPress any key to continue...");
+//     int count = 0;
+    
+//     char** data = d_timeslots.data[0];
+//     char* timeslots[d_timeslots.x];
 
+//     for (int i=0; i<d_timeslots.x; i++) {
+//         if (strcmp(data[i], "NONE") != 0) {
+//             timeslots[count] = strdup(data[i]);
+//             count++;
+//         }
+//     }
 
-    char* inputs[] = {doctor_username, new_time1, new_time2, new_time3, new_time4, new_date};
-    write_new_data("doctorSchedule", 6 , inputs);
+//     valid = 0;
+//     char* input3[5] = {doctor_username, patientID, room, "", search_date};
+//     char* chosen_time;
+//     int chosen_time_index;
+//     do {
+//         clearTerminal();
+//         chosen_time_index = displayMenu(display_new_appoinmentID, timeslots, count);
+
+//         clearTerminal();
+//         input3[3] = strdup(timeslots[chosen_time_index-1]);
+//         displayUnorderedOptions(display_new_appoinmentID, input3, 5);
+//         confirm = getString("Confirm (Y|N): ");
+
+//         if (tolower(confirm[0]) == 'y') {
+//             valid = 1;
+
+//             d_appointment.data[0][chosen_time_index] = strdup("NONE");
+//             error = updateData("doctorSchedule", d_appointment.data[0]);
+
+//             if (error) {
+//                 displaySystemMessage("ERROR", 5);
+//                 return;
+//             }
+//         }
+ 
+//     } while (!valid);
+
+//     int noFields = all_appointments.x;
+//     char** created_appointment = malloc(noFields * sizeof(char*));
+//     created_appointment[0] = strdup(new_appointmentID);
+
+//     for (int i=1; i<6; i++) {
+//         created_appointment[i] = strdup(input3[i-1]);
+//     }
+
+//     created_appointment[6] = strdup("");
+//     created_appointment[7] = strdup("");
+
+//     error = write_new_data("Appointments", noFields, created_appointment);
+
+//     if (error) {
+//         displaySystemMessage("ERROR", 5);
+//         return;
+//     }
+//     free(created_appointment);
+
+//     freeMalloc2D(d_appointment);
+//     freeMalloc2D(d_appointments);
+//     freeMalloc2D(d_timeslots);
 }
 
-
-void availability_menu(char* doctor_username)
+void searchCase() 
 {
-    char* d_menu = "My Availability";
-    char* d_choices[] = {"Change My Schedule", "New Schedule","Back"};
-    int noOptions = 3;
+    int valid = 0;
+    struct dataContainer2D d_case;
 
-    while (1)
-    {
+    do {
         clearTerminal();
-        int d_output = displayMenu(d_menu, d_choices, noOptions);
+        char* case_name = getString("Enter Case Name: ");
 
-        if (d_output == 1)
-        {
+        d_case = queryFieldStrict("Reports", "CaseName", case_name);
 
+        if (d_case.error) {
+            displaySystemMessage("Case Not Found!", 3);
+        } else {
+            valid = 1;
         }
-        else if (d_output == 2)
-        {   
-            create_new_Schedule(doctor_username);
-        }
-        else if (d_output == 3)
-        {
-            return;
-        }
-    }
+
+    } while (!valid);
+
+    printf("%d\n", d_case.y);
+    displayTabulatedData(d_case);
 }
 
 int main() 
 {   
     char* doctor_username = getString("Enter your username: ");
 
-    availability_menu(doctor_username);
+    create_appointment(doctor_username);
+    // searchCase();
+    return 0;
 }
