@@ -1256,7 +1256,6 @@ void my_schedule(char* doctor_username)
         }
         else if (d_output == 4)
         {
-            //create_appointment(doctor_username);
             availability_menu(doctor_username); 
         }
         else if (d_output == 5)
