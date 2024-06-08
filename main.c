@@ -36,6 +36,7 @@ void StaffPortal(){
 
 int main() 
 {
+    clearTerminal();
     char* header = "WELCOME TO THE HOSPITAL";
     char* options[] = {"Patient Login", "Staff Login"};
     int output; 
@@ -55,6 +56,7 @@ int main()
     }
     else if (output == 2)
     {
+        clearTerminal();
         StaffPortal();
         return 0;
     }
