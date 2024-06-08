@@ -28,6 +28,7 @@ char* getUserID()
 void create_appointment(char* doctor_username)
 {   
     struct dataContainer2D d_appointments, d_appointment;
+    
     char* previous_appointmentID;
     char new_appointmentID[256];
     int prev_count;
