@@ -33,10 +33,7 @@ void create_appointment(char* doctor_username)
     char new_appointmentID[256];
     int prev_count;
     int error;
-    
-    //get date
-    char* search_date;
-    int valid = 0;
+
 
     d_appointments = queryFieldStrict("doctorSchedule", "DoctorID", doctor_username);
 
@@ -45,11 +42,15 @@ void create_appointment(char* doctor_username)
         displaySystemMessage("Error , no records found", 2);
     }
 
+/////////////////////////////////////////////////////////////////////////////////////////////
 
+    //get date
+    char* search_date;
+    int valid = 0;
     do
     {   
         clearTerminal();
-        search_date = getString("Date of new appointment (yyyy-mm-dd) : ");
+        search_date = getString("Enter date for new appointment (yyyy-mm-dd) : ");
         d_appointment = filterDataContainer(d_appointments, "Date", search_date);
 
         if (d_appointment.error)
