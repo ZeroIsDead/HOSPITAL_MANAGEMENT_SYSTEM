@@ -1,9 +1,9 @@
 MedicineID;Medicine Name;Price;Specifications;Quantity;
-med001;Paracetamol;5.99;500mg Tablets;100;
+med001;Paracetamol;5.99;500mg Tablets;500;
 med002;Ibuprofen;7.49;200mg Tablets;150;
 med003;Aspirin;3.99;81mg Tablets;200;
 med004;Amoxicillin;12.99;250mg Capsules;50;
-med005;Omeprazole;9.99;20mg Capsules;80;
+med005;Omeprazole;9.99;20mg Capsules;100;
 med006;Lisinopril;8.49;10mg Tablets;120;
 med007;Simvastatin;11.99;40mg Tablets;90;
 med008;Metformin;6.99;500mg Tablets;100;
@@ -19,4 +19,4 @@ med017;Citalopram;9.49;10mg Tablets;100;
 med018;Sertraline;10.99;50mg Tablets;90;
 med019;Escitalopram;12.99;10mg Tablets;80;
 med020;Bupropion;14.49;150mg Tablets;70;
-med021;meme;6.99;jkashjdkjlasjd;700;
+med021;Napa;56.7;200mg Tablets;50;

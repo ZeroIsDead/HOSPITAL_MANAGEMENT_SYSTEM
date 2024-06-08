@@ -1187,7 +1187,7 @@ Sample of implementation:
 *4. call: updateData("file_name_without.txt", master.data);
 
 */
-int updateData(const char* filename, char** relaying_array)
+void updateData(const char* filename, char** relaying_array)
 {   
     //getData of the file
     struct dataContainer2D master = getData(filename);
