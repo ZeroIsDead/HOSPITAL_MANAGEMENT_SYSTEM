@@ -167,7 +167,7 @@ char* getValidUsername()
 
     do 
     {
-        clearTerminal();
+        //clearTerminal();
         username = getString("Enter your username: ");
         userData = queryKey("Staff_IDs", username);
 
