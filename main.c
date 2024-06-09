@@ -124,7 +124,7 @@ void NCurrentDoctorSchedules(){
     if (output == 1){
         clearTerminal();
         
-        struct dataContainer2D allDocSchedule = queryFieldStrict("Staff_IDs","Tags","Doctor");
+        struct dataContainer2D allDocSchedule = getData("doctorSchedule");
         displayTabulatedData(allDocSchedule);
         
         printf("\n");
@@ -216,7 +216,7 @@ void NAvailableDoctor(){
         freeMalloc2D(bookedAppointements);
         NurseBack();
         NurseMenue(NurseName);
-    
+        return;
     }
     else{
         int count = 0;
@@ -266,8 +266,18 @@ void NViewStationInventory(){
 void NurseAddNewIteam(){
     
     //Get New Medicine Name 
-    char* newMed = getString("Enter the medicine name: ");
+    char* newMed;
     
+    do{
+        newMed = getString("Enter the medicine name: ");
+        if (!strcmp(newMed,"")){
+            displaySystemMessage("No Medicine Name was entered",2);
+        }
+        else{
+            break;
+        }
+    }
+    while(1);
     //Check if newMed already exists in Inventory.txt
     struct dataContainer2D checkMed = queryFieldStrict("Inventory","Medicine Name", newMed);
     if (checkMed.error == 0){
@@ -290,6 +300,9 @@ void NurseAddNewIteam(){
             if (price == -1.0){
                 displaySystemMessage("Entered Value is not a Float",2);
             }
+            else if(price == '\0'){
+                displaySystemMessage("No Price was entered....",2);
+            }
             else{
                 break;
             }
@@ -301,14 +314,27 @@ void NurseAddNewIteam(){
         snprintf(strPrice, sizeof(strPrice), "%.6g", price);
 
         //Get Specification of the medicine
-        char* specification = getString("Enter Specification: ");
-        
+        char* specification;
+        do{
+            specification = getString("Enter Specification: ");
+            if (!strcmp(specification,"")){
+                displaySystemMessage("No Specificati2on was added",2);
+            }
+            else{
+                break;
+            }
+        }
+        while(1);
+
         //Get quanity and check if entered value is an integer
         int quantity;
         do{
             quantity = getInt("Enter Quantity: ");
             if(quantity == -1){
                 displaySystemMessage("Enterned value is not an integer please try again",2);
+            }
+            else if (quantity == '\0'){
+                displaySystemMessage("No Quantity was entered",2);
             }
             else{
                 break;
@@ -354,7 +380,18 @@ void NUpdateExistingInventory(){
     else{
         
         //Getting new quantity from user
-        int newQuantity = getInt("Enter the new quantity of iteams: ");
+        int newQuantity;
+        do{
+            newQuantity = getInt("Enter the new quantity of iteams: ");
+
+            if(newQuantity == '\0'){
+                displaySystemMessage("No quantity was entered",2);
+            }
+            else{
+                break;
+            }
+        }
+        while(1);
         
         //Converting string to int
         char strNewQutity [5];
@@ -366,9 +403,7 @@ void NUpdateExistingInventory(){
         
         freeMalloc1D(iteam);
         
-        //Returning to Nurse Main Menue
-        displaySystemMessage("Returning you to main menue",2);
-        NurseMenue(NurseName);
+        displaySystemMessage("Updated! Returning you to main menue",2);
         return;
     }
 }
@@ -389,6 +424,9 @@ void NUpdateStationInventory(){
     // Update existing iteam
     else if (output == 2){
         NUpdateExistingInventory();
+        clearTerminal();
+        NurseMenue(NurseName);
+        return;
     }
 
     //Back to Nurse Menue 
