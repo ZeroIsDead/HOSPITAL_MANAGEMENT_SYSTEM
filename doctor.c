@@ -844,7 +844,7 @@ void Write_New_Report()
         {
             displaySystemMessage("Appointment ID does not exist ! ", 2);
         }
-        else if (appointments.data[7] != NULL)
+        else if (appointments.data[7] == "-")
         {
             char appointmentexist[256];
             sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
@@ -858,6 +858,7 @@ void Write_New_Report()
     } while (!valid);
 
     My_Reports(appointments);
+    freeMalloc1D(appointments);
 }
 
 void My_reports_menu(char* doctor_username)

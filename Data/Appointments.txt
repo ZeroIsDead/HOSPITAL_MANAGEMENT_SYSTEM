@@ -11,4 +11,4 @@ apt009;drMiller;patJohnson;201;12:00-14:30;2024-06-04;pres001;rapt009;
 apt010;drMiller;patHarris;301;15:30-17:30;2024-06-04;pres001;rapt0010;
 apt011;drJohnson;patBrown;201;13:00-15:00;2024-06-04;-;-;
 apt012;drJohnson;patBrown;201;10:00-12:00;2024-06-04;pres001;rapt011;
-apt0013;drMiller;patBrown;201;09:00-10:00;2024-06-04;pres005;rapt005;
+apt0013;drMiller;patBrown;201;09:00-10:00;2024-06-04;-;-;
