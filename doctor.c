@@ -377,7 +377,7 @@ void displayAllergies(char* userID) {
 
     displayOptions("Allergies", allergies.data, allergies.x);
 
-    getString("PRESS ENTER TO ENTER");
+    getString("PRESS ENTER TO RETURN");
 
     freeMalloc2D(data);
     freeMalloc1D(allergies);
@@ -405,7 +405,7 @@ void displayPastProcedures(char* userID) {
 
     displayOptions("Past Procedures", procedures.data, procedures.x);
 
-    getString("PRESS ENTER TO ENTER");
+    getString("PRESS ENTER TO RETURN");
 
     freeMalloc2D(data);
     freeMalloc1D(procedures);
@@ -471,8 +471,63 @@ void displayPrescriptions(char* prescriptionID) {
     freeMalloc1D(quantity);
 }
 
-void prescriptionMenu(char* userID) {
+struct dataContainer2D getAppointmentHistory(char* userID) {
     struct dataContainer2D appointments = queryFieldStrict("Appointments", "PatientUserID", userID);
+
+    struct dataContainer2D returnedValue;
+
+    if (appointments.error) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    int count = 0;
+
+    for (int i=0; i<appointments.y; i++) {
+        if (!strncmp(appointments.data[i][7], "rapt", 4)) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    returnedValue.data = malloc(count * sizeof(char**));
+
+
+    int iter = 0;
+
+    for (int i=0; i<appointments.y; i++) {
+        if (!strncmp(appointments.data[i][7], "rapt", 4)) {
+
+            returnedValue.data[iter] = malloc(appointments.x * sizeof(char*));
+            
+            for (int j=0; j<appointments.x; j++) {
+                returnedValue.data[iter][j] = strdup(appointments.data[i][j]);
+            }
+            iter++;
+        }
+    }
+
+    returnedValue.y = count;
+    returnedValue.x = appointments.x;
+    returnedValue.error = 0;
+
+    returnedValue.fields = malloc(returnedValue.x * sizeof(char*));
+
+    for (int i=0; i<appointments.x; i++) {
+        returnedValue.fields[i] = strdup(appointments.fields[i]);
+    }
+
+    freeMalloc2D(appointments);
+
+    return returnedValue;
+}
+
+void prescriptionMenu(char* userID) {
+    struct dataContainer2D appointments = getAppointmentHistory(userID);
     
     if (appointments.error) {
         displaySystemMessage("No Prescriptions Found...", 2);
@@ -738,16 +793,22 @@ void View_My_Reports(char* doctor_username)
     char* d_reports[d_appointments.y+1];
     
     int i = 0;
+    int noOptions = 0;
     while (i < d_appointments.y)
     {
+        if (d_appointments.data[i][7][0] == '-') {
+            i++;
+            continue;
+        }
         d_reports[i] = strdup(d_appointments.data[i][7]);
+        noOptions++;
         i++;
     }
-    d_reports[d_appointments.y] = strdup("Back");
+    d_reports[noOptions] = strdup("Back");
     
     //cooking for menu
     char* header = "My Reports";
-    int noOptions = i+1;
+    noOptions += 1;
 
     //print menu
     clearTerminal();
@@ -760,6 +821,7 @@ void View_My_Reports(char* doctor_username)
     }
     else
     {
+        freeMalloc2D(d_appointments);
         return;
     }
 
@@ -1040,6 +1102,7 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
     {
         clearTerminal();
         int d_output = displayMenu(d_menu, d_choices, noOptions);
+        clearTerminal();
 
         if (d_output == 1)
         {
@@ -1062,6 +1125,30 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
 
 }
 
+void search_case_name() {
+    struct dataContainer2D report;
+
+    while (1) {
+        char* caseName = getString("Enter Case Name: ");
+
+
+        report = queryFieldStrict("Reports", "CaseName", caseName);
+
+        if (report.error) {
+            clearTerminal();
+            displaySystemMessage("Case Not Found!", 2);
+            continue;
+        } 
+
+        break;
+    }
+
+    clearTerminal();
+    displayTabulatedData1(report);
+    getString("\nPress Enter to Return...");
+    freeMalloc2D(report);
+}
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
@@ -1082,6 +1169,7 @@ void EHR_access(char* doctor_username)
         {   
             /*Search Case*/
             clearTerminal();
+            search_case_name();
         }
         else if (d_output == 3)
         {
@@ -1209,6 +1297,11 @@ void create_appointment(char* doctor_username)
         {
             clearTerminal();
             getString("\nRETURNING... PRESS ENTER TO CONTINUE");
+            freeMalloc2D(d_appointment);
+            freeMalloc2D(particular_day);
+            freeMalloc2D(all_schedule);
+            freeMalloc2D(chosen_day);
+            return;
         }
     }
 
@@ -1247,7 +1340,6 @@ void create_appointment(char* doctor_username)
     else if (slot_choice == 5)
     {
         freeMalloc2D(d_appointment);
-        freeMalloc2D(all_appointments);
         freeMalloc2D(particular_day);
         freeMalloc2D(all_schedule);
         freeMalloc2D(chosen_day);
@@ -1320,7 +1412,6 @@ void create_appointment(char* doctor_username)
     }
 
     freeMalloc2D(d_appointment);
-    freeMalloc2D(all_appointments);
     freeMalloc2D(particular_day);
     freeMalloc2D(all_schedule);
     freeMalloc2D(chosen_day);
@@ -1329,7 +1420,6 @@ void create_appointment(char* doctor_username)
 char* Availability(char* doctor_username)
 {
     struct dataContainer2D d_appointments;
-    struct dataContainer2D buffer_appointments;
     struct dataContainer2D appointments;
     
     char* search_date;
@@ -1378,8 +1468,6 @@ char* Availability(char* doctor_username)
 
     freeMalloc2D(d_appointments);
     freeMalloc2D(appointments);
-    freeMalloc2D(buffer_appointments);
-    
 }
 
 void availability_menu(char* doctor_username)
@@ -1449,7 +1537,7 @@ int doctor()
     //cooking infomation for menu
     struct dataContainer1D userData = queryKey("Staff_IDs", doctor_username);
 
-    char d_menu[sizeof(userData.data[2])];
+    char d_menu[strlen(userData.data[2])+10];
     sprintf(d_menu, "Hi, %s", userData.data[2]);
     char* d_choices[] = {"My Schedule", "EHR access", "My Reports", "Logout"};
     int noOptions = 4;

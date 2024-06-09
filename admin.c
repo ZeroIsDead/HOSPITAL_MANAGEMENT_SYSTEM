@@ -1183,7 +1183,7 @@ void AdminMenu()
     }
 }
 ///////// MAIN //////////
-int main() 
+int adminMain() 
 {
     int check = AdminLogin();
 
