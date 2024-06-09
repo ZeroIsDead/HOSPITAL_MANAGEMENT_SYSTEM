@@ -5,8 +5,7 @@ char* NurseName;
 
 //////////////////doctor.c/////////////////////////
 
-
-
+/// //////////////nurse.c//////////////////////////////
 void NurseBack(){
 
     int back = 1;
@@ -529,22 +528,26 @@ void StaffPortal(){
     int output = displayMenu(header,options,4);
     clearTerminal();
 
-    if (output == 1){
+    if (output == 1)
+    {
         //Call AdminMain
         printf("ADMIN PORTAL\n");
         return;
     }
-    else if (output == 2){
+    else if (output == 2)
+    {
         // Call DoctorMain
         printf("DOCTOR PORTAL\n");
         return;
     }
-    else if (output == 3){
+    else if (output == 3)
+    {
         NurseMain();
         clearTerminal;
         return;
     }
-    else {
+    else 
+    {
         clearTerminal();
         main();
         return;

@@ -1,6 +1,6 @@
 #include "File_exe.h"
 
-//char date[11] = 2024-06-01;
+char* doctor_username;
 
 //////////////////////////////UTILITY///////////////////////////////////
 
@@ -819,7 +819,8 @@ void My_Reports(struct dataContainer1D appointment)
         displaySystemMessage("Submitting Report....", 2);
         write_new_data("Reports", 3, input);
         updateData("Appointments", appointment.data);
-        displaySystemMessage("Your Submission is Successful! Returning to Main Menu...", 2);
+        getString("PRESS ENTER TO RETURN...");
+        
     }
     else
     {   
@@ -858,6 +859,7 @@ void Write_New_Report()
     } while (!valid);
 
     My_Reports(appointments);
+    return;
 }
 
 void My_reports_menu(char* doctor_username)
@@ -1356,7 +1358,10 @@ char* Availability(char* doctor_username)
         printf("\n\n");
         getString("PRESS ENTER TO RETURN...");
     }
-    
+
+    freeMalloc2D(appointments);
+    freeMalloc2D(d_appointments);
+    freeMalloc2D(buffer_appointments);
 }
 
 void availability_menu(char* doctor_username)
@@ -1421,7 +1426,7 @@ void my_schedule(char* doctor_username)
 
 int doctor() 
 {   
-    char* doctor_username = getValidUsername();
+    doctor_username = getValidUsername();
 
     //cooking infomation for menu
     struct dataContainer1D userData = queryKey("Staff_IDs", doctor_username);
@@ -1454,6 +1459,7 @@ int doctor()
             clearTerminal();
             printf("\n\n");
             displaySystemMessage("Logging you out..... Have a nice day  !", 3);
+            //StaffPortal()
             return 0;
         }
     }
