@@ -1,5 +1,5 @@
 PatientUserID;Allergies;
-patBrown;None;
+patBrown;Dust;
 patSmith;None;
 patGarcia;None;
 patWilson;None;

@@ -156,6 +156,8 @@ char* getUserID()
 
     } while (!valid);
 
+    freeMalloc2D(userData);
+
     return userData.data[0][0];
 }
 
@@ -375,7 +377,7 @@ void displayAllergies(char* userID) {
 
     displayOptions("Allergies", allergies.data, allergies.x);
 
-    getString("PRESS ENTER TO ENTER");
+    getString("PRESS ENTER TO RETURN");
 
     freeMalloc2D(data);
     freeMalloc1D(allergies);
@@ -403,7 +405,7 @@ void displayPastProcedures(char* userID) {
 
     displayOptions("Past Procedures", procedures.data, procedures.x);
 
-    getString("PRESS ENTER TO ENTER");
+    getString("PRESS ENTER TO RETURN");
 
     freeMalloc2D(data);
     freeMalloc1D(procedures);
@@ -413,14 +415,14 @@ void displayPrescriptions(char* prescriptionID) {
     struct dataContainer2D prescriptions = queryFieldStrict("prescription", "PrescriptionID", prescriptionID);
 
     if (prescriptions.error) {
-            displaySystemMessage("Cannot Find Prescriptions2", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             return;
     }
 
     struct dataContainer1D medicineIDs = getFieldValues(prescriptions, "MedicineID");
 
     if (medicineIDs.error) {
-            displaySystemMessage("Cannot Find Prescriptions3", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             return;
     }
@@ -428,7 +430,7 @@ void displayPrescriptions(char* prescriptionID) {
     struct dataContainer1D quantity = getFieldValues(prescriptions, "Quantity");
 
     if (quantity.error) {
-            displaySystemMessage("Cannot Find Prescriptions4", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             freeMalloc1D(medicineIDs);
             return;
@@ -444,7 +446,7 @@ void displayPrescriptions(char* prescriptionID) {
         struct dataContainer1D medicine = queryKey("Inventory", medicineIDs.data[i]);
 
         if (medicine.error) {
-            displaySystemMessage("Cannot Find Prescriptions5", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             freeMalloc1D(medicineIDs);
             freeMalloc1D(quantity);
@@ -455,6 +457,8 @@ void displayPrescriptions(char* prescriptionID) {
         sprintf(buffer, "%s x %s\0", medicine.data[1], quantity.data[i]);
 
         options[i] = strdup(buffer);
+
+        freeMalloc1D(medicine);
     }
 
     clearTerminal();
@@ -467,8 +471,63 @@ void displayPrescriptions(char* prescriptionID) {
     freeMalloc1D(quantity);
 }
 
-void prescriptionMenu(char* userID) {
+struct dataContainer2D getAppointmentHistory(char* userID) {
     struct dataContainer2D appointments = queryFieldStrict("Appointments", "PatientUserID", userID);
+
+    struct dataContainer2D returnedValue;
+
+    if (appointments.error) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    int count = 0;
+
+    for (int i=0; i<appointments.y; i++) {
+        if (!strncmp(appointments.data[i][7], "rapt", 4)) {
+            count++;
+        }
+    }
+
+    if (count == 0) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    returnedValue.data = malloc(count * sizeof(char**));
+
+
+    int iter = 0;
+
+    for (int i=0; i<appointments.y; i++) {
+        if (!strncmp(appointments.data[i][7], "rapt", 4)) {
+
+            returnedValue.data[iter] = malloc(appointments.x * sizeof(char*));
+            
+            for (int j=0; j<appointments.x; j++) {
+                returnedValue.data[iter][j] = strdup(appointments.data[i][j]);
+            }
+            iter++;
+        }
+    }
+
+    returnedValue.y = count;
+    returnedValue.x = appointments.x;
+    returnedValue.error = 0;
+
+    returnedValue.fields = malloc(returnedValue.x * sizeof(char*));
+
+    for (int i=0; i<appointments.x; i++) {
+        returnedValue.fields[i] = strdup(appointments.fields[i]);
+    }
+
+    freeMalloc2D(appointments);
+
+    return returnedValue;
+}
+
+void prescriptionMenu(char* userID) {
+    struct dataContainer2D appointments = getAppointmentHistory(userID);
     
     if (appointments.error) {
         displaySystemMessage("No Prescriptions Found...", 2);
@@ -734,16 +793,22 @@ void View_My_Reports(char* doctor_username)
     char* d_reports[d_appointments.y+1];
     
     int i = 0;
+    int noOptions = 0;
     while (i < d_appointments.y)
     {
+        if (d_appointments.data[i][7][0] == '-') {
+            i++;
+            continue;
+        }
         d_reports[i] = strdup(d_appointments.data[i][7]);
+        noOptions++;
         i++;
     }
-    d_reports[d_appointments.y] = strdup("Back");
+    d_reports[noOptions] = strdup("Back");
     
     //cooking for menu
     char* header = "My Reports";
-    int noOptions = i+1;
+    noOptions += 1;
 
     //print menu
     clearTerminal();
@@ -756,6 +821,7 @@ void View_My_Reports(char* doctor_username)
     }
     else
     {
+        freeMalloc2D(d_appointments);
         return;
     }
 
@@ -778,6 +844,9 @@ void View_My_Reports(char* doctor_username)
     displayUnorderedOptions(CaseHeader, options, 2);
     printf("\n");
     getString("PRESS ENTER TO RETURN...");
+
+    freeMalloc2D(d_appointments);
+    freeMalloc1D(matched_report);
 
 }
 
@@ -844,7 +913,7 @@ void Write_New_Report()
         {
             displaySystemMessage("Appointment ID does not exist ! ", 2);
         }
-        else if (appointments.data[7] != NULL)
+        else if (appointments.data[7] == "-")
         {
             char appointmentexist[256];
             sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
@@ -858,6 +927,7 @@ void Write_New_Report()
     } while (!valid);
 
     My_Reports(appointments);
+    freeMalloc1D(appointments);
 }
 
 void My_reports_menu(char* doctor_username)
@@ -1032,6 +1102,7 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
     {
         clearTerminal();
         int d_output = displayMenu(d_menu, d_choices, noOptions);
+        clearTerminal();
 
         if (d_output == 1)
         {
@@ -1054,6 +1125,30 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
 
 }
 
+void search_case_name() {
+    struct dataContainer2D report;
+
+    while (1) {
+        char* caseName = getString("Enter Case Name: ");
+
+
+        report = queryFieldStrict("Reports", "CaseName", caseName);
+
+        if (report.error) {
+            clearTerminal();
+            displaySystemMessage("Case Not Found!", 2);
+            continue;
+        } 
+
+        break;
+    }
+
+    clearTerminal();
+    displayTabulatedData1(report);
+    getString("\nPress Enter to Return...");
+    freeMalloc2D(report);
+}
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
@@ -1074,6 +1169,7 @@ void EHR_access(char* doctor_username)
         {   
             /*Search Case*/
             clearTerminal();
+            search_case_name();
         }
         else if (d_output == 3)
         {
@@ -1201,6 +1297,11 @@ void create_appointment(char* doctor_username)
         {
             clearTerminal();
             getString("\nRETURNING... PRESS ENTER TO CONTINUE");
+            freeMalloc2D(d_appointment);
+            freeMalloc2D(particular_day);
+            freeMalloc2D(all_schedule);
+            freeMalloc2D(chosen_day);
+            return;
         }
     }
 
@@ -1238,6 +1339,10 @@ void create_appointment(char* doctor_username)
     }
     else if (slot_choice == 5)
     {
+        freeMalloc2D(d_appointment);
+        freeMalloc2D(particular_day);
+        freeMalloc2D(all_schedule);
+        freeMalloc2D(chosen_day);
         return;
     }
 
@@ -1305,12 +1410,16 @@ void create_appointment(char* doctor_username)
         displaySystemMessage("Returning to Main Menu...", 2);
         getString("\n\nPRESS ENTER TO CONTINUE  ");
     }
+
+    freeMalloc2D(d_appointment);
+    freeMalloc2D(particular_day);
+    freeMalloc2D(all_schedule);
+    freeMalloc2D(chosen_day);
 }
 
 char* Availability(char* doctor_username)
 {
     struct dataContainer2D d_appointments;
-    struct dataContainer2D buffer_appointments;
     struct dataContainer2D appointments;
     
     char* search_date;
@@ -1356,7 +1465,9 @@ char* Availability(char* doctor_username)
         printf("\n\n");
         getString("PRESS ENTER TO RETURN...");
     }
-    
+
+    freeMalloc2D(d_appointments);
+    freeMalloc2D(appointments);
 }
 
 void availability_menu(char* doctor_username)
@@ -1426,10 +1537,12 @@ int doctor()
     //cooking infomation for menu
     struct dataContainer1D userData = queryKey("Staff_IDs", doctor_username);
 
-    char d_menu[sizeof(userData.data[2])];
+    char d_menu[strlen(userData.data[2])+10];
     sprintf(d_menu, "Hi, %s", userData.data[2]);
     char* d_choices[] = {"My Schedule", "EHR access", "My Reports", "Logout"};
     int noOptions = 4;
+
+    freeMalloc1D(userData);
         
 /////////////////////////MENU/////////////////////////////////
     while (1) 
@@ -1462,4 +1575,5 @@ int doctor()
 int main() 
 {  
     doctor();
+    // FIXED
 }
