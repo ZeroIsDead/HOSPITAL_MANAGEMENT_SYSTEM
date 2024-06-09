@@ -661,12 +661,6 @@ struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* fi
         return returnedValue;
     }
 
-    returnedValue.fields = malloc (data.x * sizeof(char*));
-    
-    for (int i=0; i<data.x; i++) {
-        returnedValue.fields[i] = strdup(data.fields[i]);
-    }
-
     int count = 0;
     char** pointerBuffer[data.y];
 
@@ -679,6 +673,12 @@ struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* fi
     if (count == 0) {
         returnedValue.error = 1;
         return returnedValue;
+    }
+
+    returnedValue.fields = malloc (data.x * sizeof(char*));
+    
+    for (int i=0; i<data.x; i++) {
+        returnedValue.fields[i] = strdup(data.fields[i]);
     }
 
     char*** table = malloc (count * sizeof(char**));
