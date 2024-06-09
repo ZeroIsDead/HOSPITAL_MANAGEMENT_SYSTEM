@@ -179,6 +179,7 @@ void rescheduleAppointmentsMenu(char* userID) {
 
         if (doctorSchedule.error) {
             displaySystemMessage("Doctor Unable to Reschedule", 3);
+            freeMalloc2D(appointments);
             freeMalloc1D(chosenAppointment);
             freeMalloc2D(doctorSchedule);
             return;
@@ -188,6 +189,7 @@ void rescheduleAppointmentsMenu(char* userID) {
 
         if (doctorScheduleOnChosenDate.error) {
             displaySystemMessage("Doctor Unable to Reschedule", 3);
+            freeMalloc2D(appointments);
             freeMalloc1D(chosenAppointment);
             freeMalloc2D(doctorSchedule);
             freeMalloc2D(doctorScheduleOnChosenDate);
@@ -226,6 +228,7 @@ void rescheduleAppointmentsMenu(char* userID) {
 
         if (count == 0) {
             displaySystemMessage("Doctor Unable to Reschedule", 3);
+            freeMalloc2D(appointments);
             freeMalloc1D(chosenAppointment);
             freeMalloc2D(doctorAppointments);
             freeMalloc2D(doctorAppointmentsOnChosenDate);
@@ -252,6 +255,7 @@ void rescheduleAppointmentsMenu(char* userID) {
             displaySystemMessage(confirmMessage, 2);
         }
 
+        freeMalloc2D(appointments);
         freeMalloc1D(chosenAppointment);
         freeMalloc2D(doctorAppointments);
         freeMalloc2D(doctorAppointmentsOnChosenDate);
@@ -305,6 +309,7 @@ void cancelAppointmentsMenu(char* userID) {
 
         clearTerminal();
         displayTabulatedData(data);
+        freeMalloc2D(data);
 
         char* certain = getString("Are you Certain (Y|N)? ");
 
@@ -399,14 +404,14 @@ void displayPrescriptions(char* prescriptionID) {
     struct dataContainer2D prescriptions = queryFieldStrict("prescription", "PrescriptionID", prescriptionID);
 
     if (prescriptions.error) {
-            displaySystemMessage("Cannot Find Prescriptions2", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             return;
     }
 
     struct dataContainer1D medicineIDs = getFieldValues(prescriptions, "MedicineID");
 
     if (medicineIDs.error) {
-            displaySystemMessage("Cannot Find Prescriptions3", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             return;
     }
@@ -414,7 +419,7 @@ void displayPrescriptions(char* prescriptionID) {
     struct dataContainer1D quantity = getFieldValues(prescriptions, "Quantity");
 
     if (quantity.error) {
-            displaySystemMessage("Cannot Find Prescriptions4", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             freeMalloc1D(medicineIDs);
             return;
@@ -430,17 +435,18 @@ void displayPrescriptions(char* prescriptionID) {
         struct dataContainer1D medicine = queryKey("Inventory", medicineIDs.data[i]);
 
         if (medicine.error) {
-            displaySystemMessage("Cannot Find Prescriptions5", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             freeMalloc1D(medicineIDs);
             freeMalloc1D(quantity);
             return;
         }
 
-
         sprintf(buffer, "%s x %s\0", medicine.data[1], quantity.data[i]);
 
         options[i] = strdup(buffer);
+
+        freeMalloc1D(medicine);
     }
 
     clearTerminal();
@@ -605,8 +611,14 @@ void billsMenu(char* userID) {
 int loginPatient(char username[], char password[]) {
     struct dataContainer2D userData = queryFieldStrict("Patient_IDs", "PatientUserID", username);
 
-    if (userData.error || !userData.y) {
+    if (userData.error) {
         displaySystemMessage("Username not Found", 2);
+        return 1;
+    }
+
+    if (!userData.y) {
+        displaySystemMessage("Username not Found", 2);
+        freeMalloc2d(userData);
         return 1;
     }
 
