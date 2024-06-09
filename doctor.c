@@ -156,6 +156,8 @@ char* getUserID()
 
     } while (!valid);
 
+    freeMalloc2D(userData);
+
     return userData.data[0][0];
 }
 
@@ -413,14 +415,14 @@ void displayPrescriptions(char* prescriptionID) {
     struct dataContainer2D prescriptions = queryFieldStrict("prescription", "PrescriptionID", prescriptionID);
 
     if (prescriptions.error) {
-            displaySystemMessage("Cannot Find Prescriptions2", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             return;
     }
 
     struct dataContainer1D medicineIDs = getFieldValues(prescriptions, "MedicineID");
 
     if (medicineIDs.error) {
-            displaySystemMessage("Cannot Find Prescriptions3", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             return;
     }
@@ -428,7 +430,7 @@ void displayPrescriptions(char* prescriptionID) {
     struct dataContainer1D quantity = getFieldValues(prescriptions, "Quantity");
 
     if (quantity.error) {
-            displaySystemMessage("Cannot Find Prescriptions4", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             freeMalloc1D(medicineIDs);
             return;
@@ -444,7 +446,7 @@ void displayPrescriptions(char* prescriptionID) {
         struct dataContainer1D medicine = queryKey("Inventory", medicineIDs.data[i]);
 
         if (medicine.error) {
-            displaySystemMessage("Cannot Find Prescriptions5", 2);
+            displaySystemMessage("Cannot Find Prescriptions", 2);
             freeMalloc2D(prescriptions);
             freeMalloc1D(medicineIDs);
             freeMalloc1D(quantity);
@@ -455,6 +457,8 @@ void displayPrescriptions(char* prescriptionID) {
         sprintf(buffer, "%s x %s\0", medicine.data[1], quantity.data[i]);
 
         options[i] = strdup(buffer);
+
+        freeMalloc1D(medicine);
     }
 
     clearTerminal();
@@ -778,6 +782,9 @@ void View_My_Reports(char* doctor_username)
     displayUnorderedOptions(CaseHeader, options, 2);
     printf("\n");
     getString("PRESS ENTER TO RETURN...");
+
+    freeMalloc2D(d_appointments);
+    freeMalloc1D(matched_report);
 
 }
 
@@ -1239,6 +1246,11 @@ void create_appointment(char* doctor_username)
     }
     else if (slot_choice == 5)
     {
+        freeMalloc2D(d_appointment);
+        freeMalloc2D(all_appointments);
+        freeMalloc2D(particular_day);
+        freeMalloc2D(all_schedule);
+        freeMalloc2D(chosen_day);
         return;
     }
 
@@ -1306,6 +1318,12 @@ void create_appointment(char* doctor_username)
         displaySystemMessage("Returning to Main Menu...", 2);
         getString("\n\nPRESS ENTER TO CONTINUE  ");
     }
+
+    freeMalloc2D(d_appointment);
+    freeMalloc2D(all_appointments);
+    freeMalloc2D(particular_day);
+    freeMalloc2D(all_schedule);
+    freeMalloc2D(chosen_day);
 }
 
 char* Availability(char* doctor_username)
@@ -1357,6 +1375,10 @@ char* Availability(char* doctor_username)
         printf("\n\n");
         getString("PRESS ENTER TO RETURN...");
     }
+
+    freeMalloc2D(d_appointments);
+    freeMalloc2D(appointments);
+    freeMalloc2D(buffer_appointments);
     
 }
 
@@ -1431,6 +1453,8 @@ int doctor()
     sprintf(d_menu, "Hi, %s", userData.data[2]);
     char* d_choices[] = {"My Schedule", "EHR access", "My Reports", "Logout"};
     int noOptions = 4;
+
+    freeMalloc1D(userData);
         
 /////////////////////////MENU/////////////////////////////////
     while (1) 
