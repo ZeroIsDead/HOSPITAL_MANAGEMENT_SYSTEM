@@ -162,7 +162,6 @@ void NCurrentDoctorSchedules(){
     }
 }
 
-
 void NAvailableDoctor(){
     char* doctorName;
     struct dataContainer2D doctorSchedule;
@@ -204,6 +203,7 @@ void NAvailableDoctor(){
     bookedAppointements = filterDataContainer(bookedAppointements, "Date", date);
 
     if(bookedAppointements.error == 1){
+
         displayTabulatedData(doctorTimeDay);
         freeMalloc2D(bookedAppointements);
         freeMalloc2D(doctorSchedule);
@@ -211,6 +211,7 @@ void NAvailableDoctor(){
         freeMalloc2D(bookedAppointements);
         NurseBack();
         NurseMenue(NurseName);
+    
     }
     else{
         int count = 0;
@@ -239,7 +240,6 @@ void NAvailableDoctor(){
             clearTerminal();
             printf("Available Time on %s for Doctor %s\n", date, doctorName);
             displayTabulatedData(doctorTimeDay);
-            freeMalloc2D(bookedAppointements);
             NurseBack();
             NurseMenue(NurseName);
         }
@@ -368,7 +368,6 @@ void NUpdateExistingInventory(){
     }
 }
 
-
 void NUpdateStationInventory(){
     char* InventoryBanner = "Nurse Inventory Management";
     char* options[] = {"Enter New Iteam to Inventory", "Update a Current Inventory","Back"};
@@ -396,14 +395,83 @@ void NUpdateStationInventory(){
 }
 
 void NViewPatientReport(){
-    printf("View Patient Report\n");
+    
+    char* appointmentNumber = getString("Enter Appointment Number: ");
+    struct dataContainer1D appointmentData = queryKey("Appointments",appointmentNumber);
+    
+    
+    while (appointmentData.error == 1){
+        displaySystemMessage("Appointment Does not exist, Please try again.....",3);
+        appointmentNumber = getString ("Enter Appointment Number: ");
+        appointmentData = queryKey("Appointments",appointmentNumber);
+    }
+   
+    struct dataContainer1D patientName = queryKey("Patient_IDs", appointmentData.data[2]);
+    struct dataContainer2D patientReport = queryFieldStrict("Reports","ReportID",appointmentData.data[7]);
+    clearTerminal();
+
+    printf("Name of Patient:    %s\n",patientName.data[2]);
+    printf("Age:                %s\n", patientName.data[3]);
+    printf("Insurance Company:  %s\n\n",patientName.data[6]);
+
+    displayTabulatedData(patientReport);
+    
+    freeMalloc1D(appointmentData);
+    freeMalloc1D(patientName);
+    freeMalloc2D(patientReport);
+    
+    NurseBack();
+    clearTerminal();
+    NurseMenue(NurseName);
+    return;
+}
+
+int NPatientNumber(struct dataContainer2D array, int num1, int num2){
+    
+    int sum = 0; 
+    for (int i = 0; i < array.y; i++){
+        if (atoi(array.data[i][3]) >= num1 && atoi(array.data[i][3]) < num2){
+            sum++;
+        }
+    }
+    return sum;
+
 }
 
 void NViewUnitReport(){
-    printf("View Unit Report\n");
+    
+    char* unitHeader = "Unit Report";
+    char* unitOptions[] = {"Number of Patient in Ward","Number of Patient in ICU","Number of Patient in Emergency Room", "Back"};
+
+    int output2 = displayMenu(unitHeader, unitOptions, 4);
+    clearTerminal();
+
+    struct dataContainer2D data = getData("Appointments");
+    int patientNumber;
+    if(output2 == 1){
+        patientNumber = NPatientNumber(data, 100, 200);
+        printf("There are %d Patient Admitted in Ward\n", patientNumber);
+    }
+    else if(output2 == 2){
+        patientNumber = NPatientNumber(data, 200, 300);
+        printf("There are %d Patient Admitted in ICU\n", patientNumber);
+    }
+    else if (output2 == 3){
+        patientNumber = NPatientNumber(data, 300, 400);
+        printf("There are %d Patient Admitted in Emergency Room\n", patientNumber);
+    }
+    else{
+        freeMalloc2D(data);
+        NurseMenue(NurseName);
+        return;
+    }
+    freeMalloc2D(data);
+    NurseBack();
+    clearTerminal();
+    NurseMenue(NurseName);
+    return;
+
 }
-
-
 
 void NurseMenue(char* name){
     clearTerminal();
@@ -431,14 +499,15 @@ void NurseMenue(char* name){
        NViewUnitReport();
     }
     else{
-        main();
+        StaffPortal();
         return;
     }
 }
 
-int main(){
-    NurseName= NurseLogin();
+int NurseMain(){
+    NurseName = NurseLogin();
     clearTerminal();
     
     NurseMenue(NurseName);
+    return 0;
 }

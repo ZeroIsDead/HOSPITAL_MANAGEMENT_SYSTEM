@@ -59,8 +59,11 @@ struct dataContainer2D filteringData(struct dataContainer2D data)
 
 int main(){
 
-    struct dataContainer2D d_Appointment = getData("Appointments");
-    struct dataContainer2D filteredData = filteringData(d_Appointment);
-    freeMalloc2D(filteredData);
-    freeMalloc2D(d_Appointment);
+    struct dataContainer2D d_Inventory = queryFieldStrict("Inventory", "MedicineID", "med001");
+
+    clearTerminal();
+    displayTabulatedData(d_Inventory);
+    freeMalloc2D(d_Inventory);
+
+
 }
