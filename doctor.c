@@ -1056,22 +1056,22 @@ void delete_slots(struct dataContainer2D appointments, char* doctor_username, ch
     if (d_output == 1)
      {   
         index = 1;
-        appointments.data[0][index] = "NULL";
+        appointments.data[0][index] = "-";
      }
      else if (d_output == 2)
      {
         index = 2;
-        appointments.data[0][index] = "NULL";
+        appointments.data[0][index] = "-";
      }
      else if (d_output == 3)
      {
         index = 3;
-        appointments.data[0][index] = "NULL";
+        appointments.data[0][index] = "-";
      }
      else if (d_output == 4)
      {
         index = 4;
-        appointments.data[0][index] = "NULL";
+        appointments.data[0][index] = "-";
 
      }
      else if (d_output == 5)
@@ -1398,7 +1398,7 @@ void create_appointment(char* doctor_username)
     if (comfirmation == 'y' || comfirmation == 'Y')
     {
         //AppointmentID;StaffUserID;PatientUserID;RoomNo;TimeSlots;Date;PrescriptionID;ReportID;
-        char* input[] = {new_appointmentID, doctor_username, patientID, picked_room, picked_slot, search_date,"", ""};
+        char* input[] = {new_appointmentID, doctor_username, patientID, picked_room, picked_slot, search_date,"-", "-"};
         int input_size = 8;
 
         write_new_data("Appointments", input_size, input);

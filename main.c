@@ -212,7 +212,7 @@ void rescheduleAppointmentsMenu(char* userID) {
             int taken = 0;
             char* timeslot = doctorScheduleOnChosenDate.data[0][i];
             
-            if (!strncmp(timeslot, chosenAppointment.data[4], 256)) { // If Same as Current TimeSlot or Not Available then Skip
+            if (!strncmp(timeslot, chosenAppointment.data[4], 256) || chosenAppointment.data[4][0] == '-') { // If Same as Current TimeSlot or Not Available then Skip
                 continue;
             }
 
@@ -1841,7 +1841,7 @@ void create_appointment(char* doctor_username)
     if (comfirmation == 'y' || comfirmation == 'Y')
     {
         //AppointmentID;StaffUserID;PatientUserID;RoomNo;TimeSlots;Date;PrescriptionID;ReportID;
-        char* input[] = {new_appointmentID, doctor_username, patientID, picked_room, picked_slot, search_date,"", ""};
+        char* input[] = {new_appointmentID, doctor_username, patientID, picked_room, picked_slot, search_date,"-", "-"};
         int input_size = 8;
 
         write_new_data("Appointments", input_size, input);
@@ -2508,7 +2508,6 @@ void NurseMenue(char* name){
        NViewUnitReport();
     }
     else{
-        StaffPortal();
         return;
     }
 }
