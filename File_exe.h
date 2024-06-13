@@ -1134,7 +1134,7 @@ int write_new_data(const char* filename, int numInputs, char* inputs[])
     }
     total_len += 1; // Add 1 for the newline character
 
-    char* line = malloc(total_len); // Allocate memory for the line
+    char* line = malloc(total_len + 10); // Allocate memory for the line
     
     // Check for null pointer
     if (line == NULL) 
