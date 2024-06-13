@@ -1170,7 +1170,7 @@ void AdminMenu()
         displaySystemMessage("Logging out.", 1);
         displaySystemMessage("Logging out..", 1);
         displaySystemMessage("Logging out...", 1);
-        main();
+        AdminMenu();
         return;
     }
     else
@@ -1183,7 +1183,7 @@ void AdminMenu()
     }
 }
 ///////// MAIN //////////
-int main() 
+int AdminMain() 
 {
     int check = AdminLogin();
 
