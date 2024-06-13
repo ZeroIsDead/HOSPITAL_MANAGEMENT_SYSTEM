@@ -1058,9 +1058,9 @@ void RestockInventory()
 void AdminInventoryMenu()
 {
     char* Inventoryheader = "Inventory Menu";
-    char* Inventoryoptions[] = {"View Inventory", "Search Inventory", "Restock Inventory""Return to Menu"};
+    char* Inventoryoptions[] = {"View Inventory", "Search Inventory", "Restock Inventory","Return to Menu"};
         
-    printf("1");
+    clearTerminal();
     int inventoryoutput = displayMenu(Inventoryheader, Inventoryoptions, 4);
 
     if(inventoryoutput==1)
@@ -1170,7 +1170,7 @@ void AdminMenu()
         displaySystemMessage("Logging out.", 1);
         displaySystemMessage("Logging out..", 1);
         displaySystemMessage("Logging out...", 1);
-        main();
+        AdminMenu();
         return;
     }
     else
@@ -1183,7 +1183,7 @@ void AdminMenu()
     }
 }
 ///////// MAIN //////////
-int main() 
+int AdminMain() 
 {
     int check = AdminLogin();
 
