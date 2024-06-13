@@ -2209,7 +2209,7 @@ void NAvailableDoctor(){
         
         for (int i = 0; i < bookedAppointements.y; i++){
             for (int j = 1; j < 5; j++){
-                if ( strcmp(bookedAppointements.data[i][4],doctorTimeDay.data[0][j]) == 0){
+                if ( strcmp(bookedAppointements.data[i][4],doctorTimeDay.data[0][j]) == 0 || doctorTimeDay.data[0][j][0] == '-'){
                     doctorTimeDay.data[0][j] = "0";
                     count++;
                 }
