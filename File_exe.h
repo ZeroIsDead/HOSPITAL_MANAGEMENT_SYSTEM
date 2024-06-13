@@ -420,7 +420,7 @@ int displayMenu(char* header, char* options[], int noOptions) {
     }
 
     // Repeat Menu until Valid Input
-    displaySystemMessage("INSERT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.", 5);
+    displaySystemMessage("INSERT THE CORRECT INPUT...\n\nWaiting For 3 Seconds.", 3);
     return displayMenu(header, options, noOptions);
 }
 
