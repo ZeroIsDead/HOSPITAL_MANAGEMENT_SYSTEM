@@ -114,11 +114,12 @@ void displayAppointments(char* userID) {
     struct dataContainer2D appointments = getActiveAppointments(userID);
 
     if (appointments.error) {
-        displaySystemMessage("Unable to Access Appointments...", 3);
+        displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
 
     if (!appointments.y) {
+        freeMalloc2D(appointments);
         displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
@@ -135,8 +136,7 @@ void rescheduleAppointmentsMenu(char* userID) {
     struct dataContainer2D appointments = getActiveAppointments(userID);
 
     if (appointments.error) {
-        freeMalloc2D(appointments);
-        displaySystemMessage("Unable to Access Appointments...", 3);
+        displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
 
@@ -181,7 +181,6 @@ void rescheduleAppointmentsMenu(char* userID) {
             displaySystemMessage("Doctor Unable to Reschedule", 3);
             freeMalloc2D(appointments);
             freeMalloc1D(chosenAppointment);
-            freeMalloc2D(doctorSchedule);
             return;
         }
 
@@ -192,7 +191,6 @@ void rescheduleAppointmentsMenu(char* userID) {
             freeMalloc2D(appointments);
             freeMalloc1D(chosenAppointment);
             freeMalloc2D(doctorSchedule);
-            freeMalloc2D(doctorScheduleOnChosenDate);
             return;
         }
 
@@ -255,7 +253,6 @@ void rescheduleAppointmentsMenu(char* userID) {
             displaySystemMessage(confirmMessage, 2);
         }
 
-        freeMalloc2D(appointments);
         freeMalloc1D(chosenAppointment);
         freeMalloc2D(doctorAppointments);
         freeMalloc2D(doctorAppointmentsOnChosenDate);
@@ -268,33 +265,31 @@ void rescheduleAppointmentsMenu(char* userID) {
 
 void cancelAppointmentsMenu(char* userID) {
     // AppointmentID;StaffUserID;PatientUserID;RoomNo;TimeSlots;ReportID;
-    struct dataContainer2D appointments = getActiveAppointments(userID);
-
-    if (appointments.error) {
-        freeMalloc2D(appointments);
-        displaySystemMessage("Unable to Access Appointments...", 3);
-        return;
-    }
-
-    if (!appointments.y) {
-        freeMalloc2D(appointments);
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
-    char* header = "Cancel Appointment Menu";
-
-    // Format the strings
-    int noOptions = appointments.y + 1;
-    char* options[noOptions];
-
-    for (int i=0; i<noOptions-1; i++) {
-        options[i] = appointments.data[i][0];
-    }
-    options[noOptions-1] = "Back";
-
-
     while (1) {
+        struct dataContainer2D appointments = getActiveAppointments(userID);
+
+        if (appointments.error) {
+            displaySystemMessage("You Have Not Made Any Appointments", 3);
+            return;
+        }
+
+        if (!appointments.y) {
+            freeMalloc2D(appointments);
+            displaySystemMessage("You Have Not Made Any Appointments", 3);
+            return;
+        }
+
+        char* header = "Cancel Appointment Menu";
+
+        // Format the strings
+        int noOptions = appointments.y + 1;
+        char* options[noOptions];
+
+        for (int i=0; i<noOptions-1; i++) {
+            options[i] = appointments.data[i][0];
+        }
+        options[noOptions-1] = "Back";
+
         clearTerminal();
         int input = displayMenu(header, options, noOptions);
 
@@ -317,9 +312,16 @@ void cancelAppointmentsMenu(char* userID) {
         if (tolower(certain[0]) == 'y') {
             deleteKey("Appointments", option);
             displaySystemMessage("Appointment Successfully Canceled...", 2);
+
+            if (appointments.y == 1) {
+                freeMalloc2D(appointments);
+                displaySystemMessage("No Appointments Found! Returning to Previous Menu...", 2);
+                return;
+            }
         }
+
+        freeMalloc2D(appointments);
     }
-    freeMalloc2D(appointments);
 
 }
 
@@ -366,7 +368,7 @@ void displayAllergies(char* userID) {
 
     displayOptions("Allergies", allergies.data, allergies.x);
 
-    getString("PRESS ENTER TO ENTER");
+    getString("PRESS ENTER TO RETURN");
 
     freeMalloc2D(data);
     freeMalloc1D(allergies);
@@ -394,7 +396,7 @@ void displayPastProcedures(char* userID) {
 
     displayOptions("Past Procedures", procedures.data, procedures.x);
 
-    getString("PRESS ENTER TO ENTER");
+    getString("PRESS ENTER TO RETURN");
 
     freeMalloc2D(data);
     freeMalloc1D(procedures);
@@ -485,19 +487,21 @@ void prescriptionMenu(char* userID) {
 
     options[appointmentIDs.x] = "Back";
 
-    clearTerminal();
+    while (1) {
+        clearTerminal();
 
-    int choice = displayMenu(header, options, noOptions);
+        int choice = displayMenu(header, options, noOptions);
 
-    if (choice == noOptions) {
-        freeMalloc1D(appointmentIDs);
-        freeMalloc2D(appointments);
-        return;
+        if (choice == noOptions) {
+            freeMalloc1D(appointmentIDs);
+            freeMalloc2D(appointments);
+            return;
+        }
+        
+        char* chosenID = appointments.data[choice-1][6]; // PresciptionID 
+
+        displayPrescriptions(chosenID);    
     }
-
-    char* chosenID = appointments.data[choice-1][6]; // PresciptionID 
-
-    displayPrescriptions(chosenID);
 
     freeMalloc1D(appointmentIDs);
     freeMalloc2D(appointments);
@@ -508,7 +512,7 @@ void displayAppointmentHistory(char* userID) {
     struct dataContainer2D appointments = getAppointmentHistory(userID);
 
     if (appointments.error) {
-        displaySystemMessage("Unable to Access Appointments...", 3);
+        displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
 
@@ -618,7 +622,7 @@ int loginPatient(char username[], char password[]) {
 
     if (!userData.y) {
         displaySystemMessage("Username not Found", 2);
-        freeMalloc2d(userData);
+        freeMalloc2D(userData);
         return 1;
     }
 
@@ -671,7 +675,7 @@ int main() {
 
         char* input = getString("Try Again (Y|N): ");
 
-        if (input && tolower(input[0]) == 'n') {
+        if (tolower(input[0]) == 'n') {
             return 1;
         }
     } while (error);

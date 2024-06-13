@@ -227,7 +227,7 @@ void displaycurrentpatient()
 
     char* ConfirmationMessage = getString("Return back to the menu? (Y/N): ");
 
-    if( strncmp(ConfirmationMessage,"Y", 1) == 0)
+    if( strncmp(tolower(ConfirmationMessage[0]),"Y", 1) == 0)
     {
         clearTerminal();
         displaySystemMessage("Returning back to menu...", 2);
@@ -1183,7 +1183,7 @@ void AdminMenu()
     }
 }
 ///////// MAIN //////////
-int main() 
+int adminMain() 
 {
     int check = AdminLogin();
 

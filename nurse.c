@@ -211,7 +211,7 @@ void NAvailableDoctor(){
         freeMalloc2D(bookedAppointements);
         NurseBack();
         NurseMenue(NurseName);
-    
+        return;
     }
     else{
         int count = 0;
