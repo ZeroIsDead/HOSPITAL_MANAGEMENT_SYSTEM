@@ -1,5 +1,4 @@
 #include "File_exe.h"
-char* NurseName;
 
 void NurseMenue(char* name);
 int main();
@@ -2097,7 +2096,7 @@ char* NurseLogin(){
     
 }
 
-void NCurrentDoctorSchedules(){
+void NCurrentDoctorSchedules(char* NurseName){
     
     // Display + input of Doctor Schedule Menu
     char* option[] = {"All Doctor Schedule", "Specific Doctor Schedule", "Back"};
@@ -2115,7 +2114,7 @@ void NCurrentDoctorSchedules(){
         
         NurseBack();
         clearTerminal();
-        NCurrentDoctorSchedules();
+        NCurrentDoctorSchedules(NurseName);
         freeMalloc2D(allDocSchedule);
         return;
     }
@@ -2138,7 +2137,7 @@ void NCurrentDoctorSchedules(){
         
         NurseBack();
         clearTerminal();
-        NCurrentDoctorSchedules();
+        NCurrentDoctorSchedules(NurseName);
         return;
     }
 
@@ -2151,7 +2150,7 @@ void NCurrentDoctorSchedules(){
     }
 }
 
-void NAvailableDoctor(){
+void NAvailableDoctor(char* NurseName){
     char* doctorName;
     struct dataContainer2D doctorSchedule;
     
@@ -2237,7 +2236,7 @@ void NAvailableDoctor(){
 }
 
 //View Current inventory
-void NViewStationInventory(){
+void NViewStationInventory(char* NurseName){
     clearTerminal();
     struct dataContainer2D currentInventory = getData("Inventory");
     displayTabulatedData(currentInventory);
@@ -2391,7 +2390,7 @@ void NUpdateExistingInventory(){
     }
 }
 
-void NUpdateStationInventory(){
+void NUpdateStationInventory(char* NurseName){
     char* InventoryBanner = "Nurse Inventory Management";
     char* options[] = {"Enter New Iteam to Inventory", "Update a Current Inventory","Back"};
     int output = displayMenu(InventoryBanner,options,3);
@@ -2420,7 +2419,7 @@ void NUpdateStationInventory(){
     }
 }
 
-void NViewPatientReport(){
+void NViewPatientReport(char* NurseName){
     
     char* appointmentNumber = getString("Enter Appointment Number: ");
     struct dataContainer1D appointmentData = queryKey("Appointments",appointmentNumber);
@@ -2464,7 +2463,7 @@ int NPatientNumber(struct dataContainer2D array, int num1, int num2){
 
 }
 
-void NViewUnitReport(){
+void NViewUnitReport(char* NurseName){
     
     char* unitHeader = "Unit Report";
     char* unitOptions[] = {"Number of Patient in Ward","Number of Patient in ICU","Number of Patient in Emergency Room", "Back"};
@@ -2494,7 +2493,7 @@ void NViewUnitReport(){
     freeMalloc2D(data);
     NurseBack();
     clearTerminal();
-    NurseMenue(NurseName);
+    NViewUnitReport(NurseName);
     return;
 
 }
@@ -2508,21 +2507,21 @@ void NurseMenue(char* name){
     clearTerminal();
     
     if (output == 1){
-        NCurrentDoctorSchedules();
+        NCurrentDoctorSchedules(name);
         return;
     }else if (output == 2){
-        NAvailableDoctor();
+        NAvailableDoctor(name);
     }else if(output == 3){
-        NViewStationInventory();
+        NViewStationInventory(name);
     }
     else if(output == 4){
-        NUpdateStationInventory();
+        NUpdateStationInventory(name);
     }
     else if (output == 5){
-        NViewPatientReport();
+        NViewPatientReport(name);
     }
     else if (output == 6){
-       NViewUnitReport();
+       NViewUnitReport(name);
     }
     else{
         return;
@@ -3786,7 +3785,7 @@ int doctor()
 }
 
 int NurseMain(){
-    NurseName = NurseLogin();
+    char* NurseName = NurseLogin();
     clearTerminal();
     
     NurseMenue(NurseName);
