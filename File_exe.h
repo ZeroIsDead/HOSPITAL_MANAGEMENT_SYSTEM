@@ -675,7 +675,7 @@ int displayMenu(char* header, char* options[], int noOptions) {
     }
 
     // Repeat Menu until Valid Input
-    displaySystemMessage("Please insert a correct input...\n\nWaiting For 5 Seconds.", 5);
+    displaySystemMessage("INSERT THE CORRECT INPUT...\n\nWaiting For 3 Seconds.", 3);
     return displayMenu(header, options, noOptions);
 }
 
@@ -1127,7 +1127,7 @@ int write_new_data(const char* filename, int numInputs, char* inputs[])
     }
     total_len += 1; // Add 1 for the newline character
 
-    char* line = malloc(total_len); // Allocate memory for the line
+    char* line = malloc(total_len + 10); // Allocate memory for the line
     
     // Check for null pointer
     if (line == NULL) 
