@@ -1039,8 +1039,6 @@ void DoctorEHRMenu()
     }
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-
 char* gettime(char* d_choices[], int index)
 {
     char* token;

@@ -173,366 +173,6 @@ float getFloat(char* prompt)
     return -1.0;
 }
 
-///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
-
-/*Display a system message on the terminal and wait for a specified duration before clearing the terminal.*/
-void displaySystemMessage(char* message, int waitTime) {
-    clearTerminal();
-    printf(message);
-    sleep(waitTime);
-    clearTerminal();
-}
-
-/*Print Column Vertically in a table
-
-char* options[] = {display_CaseName, display_DiagnosticComments}
-
-displayUnorderedOptions(CaseHeader, options, 2);*/
-void displayUnorderedOptions(char* header, char* options[], int noOptions) 
-{
-    // get max sizeof option string
-    int maxLength = strlen(header);
-
-    for (int i=0; i<noOptions; i++) {
-        // get length
-        int currentLength = strlen(options[i]);
-    
-        if (currentLength > maxLength) {
-            maxLength = currentLength;
-        }
-    }
-
-    const int horizontalpadding = 15;
-    int borderLength = maxLength + 2 * horizontalpadding;
-
-    // Top  Horizontal Line
-    for (int i=0; i<borderLength; i++) {
-        printf("-");
-    }
-    printf("\n");
-
-    // Header
-    const int verticalPadding = 1;
-
-    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
-    
-    const int borderCount = 2;
-    const char character = '|';
-    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
-
-    printf("%c", character);
-
-    for (int i=0; i<headerPadding; i++) {
-        printf(" ");
-    }
-
-    printf(header);
-
-    for (int i=0; i<rightPadding; i++) {
-        printf(" ");
-    }
-
-    printf("%c", character);
-
-    printf("\n");
-
-    // Middle Horizontal Line
-    for (int i=0; i<borderLength; i++) {
-        printf("-");
-    }
-    printf("\n");
-
-    const int leftPadding = 5;
-
-    // Options
-    for (int i=0; i<noOptions; i++) {
-        const char* text = options[i];
-        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
-
-        printf("%c", character);
-
-        for (int i=0; i<leftPadding; i++) {
-            printf(" ");
-        }
-
-        printf(text);
-
-        for (int i=0; i<rightPadding; i++) {
-            printf(" ");
-        }
-
-        printf("%c", character);
-
-        printf("\n");
-    }
-
-    // Bottom Horizontal Line
-    for (int i=0; i<borderLength; i++) {
-        printf("-");
-    }
-    printf("\n");
-}
-
-/*Print Column Vertically with index 
-1.
-2.
-3.
-
-*/
-void displayOptions(char* header, char* options[], int noOptions) 
-{
-    // get max sizeof option string
-    int maxLength = strlen(header);
-    char* modifiedOptions[noOptions];
-
-    for (int i=0; i<noOptions; i++) {
-        // format the strings
-        char buffer[255];
-
-        sprintf(buffer, "%d. %s", i+1, options[i]);
-
-        modifiedOptions[i] = strdup(buffer);
-
-        // get length
-        int currentLength = strlen(modifiedOptions[i]);
-    
-        if (currentLength > maxLength) {
-            maxLength = currentLength;
-        }
-    }
-
-    const int horizontalpadding = 15;
-    int borderLength = maxLength + 2 * horizontalpadding;
-
-    // Top  Horizontal Line
-    for (int i=0; i<borderLength; i++) {
-        printf("-");
-    }
-    printf("\n");
-
-    // Header
-    const int verticalPadding = 1;
-
-    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
-    
-    const int borderCount = 2;
-    const char character = '|';
-    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
-
-    printf("%c", character);
-
-    for (int i=0; i<headerPadding; i++) {
-        printf(" ");
-    }
-
-    printf(header);
-
-    for (int i=0; i<rightPadding; i++) {
-        printf(" ");
-    }
-
-    printf("%c", character);
-
-    printf("\n");
-
-    // Middle Horizontal Line
-    for (int i=0; i<borderLength; i++) {
-        printf("-");
-    }
-    printf("\n");
-
-    const int leftPadding = 5;
-
-    // Options
-    for (int i=0; i<noOptions; i++) {
-        const char* text = modifiedOptions[i];
-        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
-
-        printf("%c", character);
-
-        for (int i=0; i<leftPadding; i++) {
-            printf(" ");
-        }
-
-        printf(text);
-
-        for (int i=0; i<rightPadding; i++) {
-            printf(" ");
-        }
-
-        printf("%c", character);
-
-        printf("\n");
-    }
-
-    // Bottom Horizontal Line
-    for (int i=0; i<borderLength; i++) {
-        printf("-");
-    }
-    printf("\n");
-}
-
-/*char* options[] = {"ar", "a", "b", "C"};
-
-    displayMenu("GOD", options, 4);*/
-int displayMenu(char* header, char* options[], int noOptions) {
-    displayOptions(header, options, noOptions);
-
-    // Get Input
-    int bufferLength = 256;
-    char input[bufferLength];
-    printf("Enter your Input: ");
-
-    fgets(input, bufferLength, stdin);   
-    input[strcspn(input, "\n")] = 0;
-
-    // Decides if string is a Number
-    int isDigit = 1;
-    for (int i = 0; input[i] && isDigit; i++) {
-        isDigit = isdigit(input[i]);
-    }
-
-    // Checks f input is a Number and is Valid
-    int intInput = atoi(input);
-    if (isDigit && 0 < intInput && intInput <= noOptions) {
-        return intInput;
-    }
-
-    // Lowercase the input string
-    for (int j=0; input[j]; j++) {
-        input[j] = tolower(input[j]);
-    }
-
-
-    // Repeat Menu until Valid Input
-    for (int i=0; i<noOptions; i++) {
-        char* option = strdup(options[i]);
-
-        // Lowercase the option string
-        for (int j=0; option[j]; j++) {
-            option[j] = tolower(option[j]);
-        }
-
-        // Compare the strings
-        if (!strncmp(input, option, bufferLength)) {
-            return i+1;
-        }
-    }
-
-    // Repeat Menu until Valid Input
-    displaySystemMessage("INSERT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.", 5);
-    return displayMenu(header, options, noOptions);
-}
-
-/* This function display your data in a table form.
-
-struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
-        
-    displayTabulatedData(d_appointments);
-    freeMalloc2D(d_appointments);*/
-void displayTabulatedData(struct dataContainer2D data) {
-    const int minPadding = 5;
-    int numRow = data.y + 1;
-    char** displayedStrings = malloc (numRow * sizeof(char*));
-
-    // Find Max Column Lengths
-    int columnLengths[data.x];
-
-    for (int i=0; i<data.x; i++) {
-        int columnLength = strlen(data.fields[i]);
-
-        for (int j=0; j<data.y; j++) {
-            int currentLength = strlen(data.data[j][i]);
-
-            if (currentLength > columnLength) {
-                columnLength = currentLength;
-            }
-        }
-
-        columnLengths[i] = columnLength;
-    }
-
-    int bufferLength = 500;
-    char stringBuffer[bufferLength];
-
-    // Clear String;
-    stringBuffer[0] = '\0';
-
-    // Format the Field Strings
-    for (int i=0; i<data.x; i++) {
-        int totalPadding = columnLengths[i] - strlen(data.fields[i]) + minPadding;
-
-        int leftPadding = floor(totalPadding/2);
-        
-        for (int n=0; n<leftPadding; n++) {
-            strncat(stringBuffer, " ", 2);
-        } 
-
-        strncat(stringBuffer, data.fields[i], strlen(data.fields[i]));
-
-        int rightPadding = totalPadding - leftPadding;
-
-        for (int n=0; n<rightPadding; n++) {
-            strncat(stringBuffer, " ", 2);
-        } 
-
-        strncat(stringBuffer, "|", 2);
-    }
-
-    displayedStrings[0] = strdup(stringBuffer);
-
-    // Format the Strings
-
-    for (int i=0; i<data.y; i++) {
-        stringBuffer[0] = '\0';
-
-        // Create String
-        for (int j=0; j<data.x; j++) {
-            int totalPadding = columnLengths[j] - strlen(data.data[i][j]) + minPadding;
-
-            // Left Padding
-            int leftPadding = floor(totalPadding/2);
-            
-            for (int n=0; n<leftPadding; n++) {
-                strncat(stringBuffer, " ", 2);
-            } 
-
-            strncat(stringBuffer, data.data[i][j], strlen(data.data[i][j]));
-
-            // Right Padding
-            int rightPadding = totalPadding - leftPadding;
-
-            for (int n=0; n<rightPadding; n++) {
-                strncat(stringBuffer, " ", 2);
-            } 
-
-            strncat(stringBuffer, "|", 2);
-        }
-
-        // Add String to Array
-        displayedStrings[i+1] = strdup(stringBuffer);
-    }
-
-    int tableLength = strlen(displayedStrings[0]) + 1;
-
-    for (int i=0; i<tableLength; i++) {
-        printf("-");
-    }
-
-    for (int i=0; i<numRow; i++) {
-        printf("\n|%s\n", displayedStrings[i]);
-        
-        for (int i=0; i<tableLength; i++) {
-            printf("-");
-        }
-    }
-
-    printf("\n");
-
-    free(displayedStrings);
-}
-
-
 /* This function frees the memory allocated for the dataContainer2D struct.
  * It iterates over each line of data, frees the memory allocated for each element in that line,
  * and then frees the memory allocated for the line itself. Finally, it frees the memory
@@ -787,6 +427,364 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
 
     return returnedValue;
 
+}
+///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
+
+/*Display a system message on the terminal and wait for a specified duration before clearing the terminal.*/
+void displaySystemMessage(char* message, int waitTime) {
+    clearTerminal();
+    printf(message);
+    sleep(waitTime);
+    clearTerminal();
+}
+
+/*Print Column Vertically in a table
+
+char* options[] = {display_CaseName, display_DiagnosticComments}
+
+displayUnorderedOptions(CaseHeader, options, 2);*/
+void displayUnorderedOptions(char* header, char* options[], int noOptions) 
+{
+    // get max sizeof option string
+    int maxLength = strlen(header);
+
+    for (int i=0; i<noOptions; i++) {
+        // get length
+        int currentLength = strlen(options[i]);
+    
+        if (currentLength > maxLength) {
+            maxLength = currentLength;
+        }
+    }
+
+    const int horizontalpadding = 15;
+    int borderLength = maxLength + 2 * horizontalpadding;
+
+    // Top  Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // Header
+    const int verticalPadding = 1;
+
+    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
+    
+    const int borderCount = 2;
+    const char character = '|';
+    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
+
+    printf("%c", character);
+
+    for (int i=0; i<headerPadding; i++) {
+        printf(" ");
+    }
+
+    printf(header);
+
+    for (int i=0; i<rightPadding; i++) {
+        printf(" ");
+    }
+
+    printf("%c", character);
+
+    printf("\n");
+
+    // Middle Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    const int leftPadding = 5;
+
+    // Options
+    for (int i=0; i<noOptions; i++) {
+        const char* text = options[i];
+        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
+
+        printf("%c", character);
+
+        for (int i=0; i<leftPadding; i++) {
+            printf(" ");
+        }
+
+        printf(text);
+
+        for (int i=0; i<rightPadding; i++) {
+            printf(" ");
+        }
+
+        printf("%c", character);
+
+        printf("\n");
+    }
+
+    // Bottom Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
+
+/*Print Column Vertically with index 
+1.
+2.
+3.
+
+*/
+void displayOptions(char* header, char* options[], int noOptions) 
+{
+    // get max sizeof option string
+    int maxLength = strlen(header);
+    char* modifiedOptions[noOptions];
+
+    for (int i=0; i<noOptions; i++) {
+        // format the strings
+        char buffer[255];
+
+        sprintf(buffer, "%d. %s", i+1, options[i]);
+
+        modifiedOptions[i] = strdup(buffer);
+
+        // get length
+        int currentLength = strlen(modifiedOptions[i]);
+    
+        if (currentLength > maxLength) {
+            maxLength = currentLength;
+        }
+    }
+
+    const int horizontalpadding = 15;
+    int borderLength = maxLength + 2 * horizontalpadding;
+
+    // Top  Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    // Header
+    const int verticalPadding = 1;
+
+    int headerPadding = floor((borderLength - strlen(header) - 2)/2);
+    
+    const int borderCount = 2;
+    const char character = '|';
+    const int rightPadding = borderLength - borderCount - strlen(header) - headerPadding;
+
+    printf("%c", character);
+
+    for (int i=0; i<headerPadding; i++) {
+        printf(" ");
+    }
+
+    printf(header);
+
+    for (int i=0; i<rightPadding; i++) {
+        printf(" ");
+    }
+
+    printf("%c", character);
+
+    printf("\n");
+
+    // Middle Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+
+    const int leftPadding = 5;
+
+    // Options
+    for (int i=0; i<noOptions; i++) {
+        const char* text = modifiedOptions[i];
+        const int rightPadding = borderLength - borderCount - strlen(text) - leftPadding;
+
+        printf("%c", character);
+
+        for (int i=0; i<leftPadding; i++) {
+            printf(" ");
+        }
+
+        printf(text);
+
+        for (int i=0; i<rightPadding; i++) {
+            printf(" ");
+        }
+
+        printf("%c", character);
+
+        printf("\n");
+    }
+
+    // Bottom Horizontal Line
+    for (int i=0; i<borderLength; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
+
+/*char* options[] = {"ar", "a", "b", "C"};
+
+    displayMenu("GOD", options, 4);*/
+int displayMenu(char* header, char* options[], int noOptions) {
+    displayOptions(header, options, noOptions);
+
+    // Get Input
+    int bufferLength = 256;
+    char input[bufferLength];
+    printf("Enter your Input: ");
+
+    fgets(input, bufferLength, stdin);   
+    input[strcspn(input, "\n")] = 0;
+
+    // Decides if string is a Number
+    int isDigit = 1;
+    for (int i = 0; input[i] && isDigit; i++) {
+        isDigit = isdigit(input[i]);
+    }
+
+    // Checks f input is a Number and is Valid
+    int intInput = atoi(input);
+    if (isDigit && 0 < intInput && intInput <= noOptions) {
+        return intInput;
+    }
+
+    // Lowercase the input string
+    for (int j=0; input[j]; j++) {
+        input[j] = tolower(input[j]);
+    }
+
+
+    // Repeat Menu until Valid Input
+    for (int i=0; i<noOptions; i++) {
+        char* option = strdup(options[i]);
+
+        // Lowercase the option string
+        for (int j=0; option[j]; j++) {
+            option[j] = tolower(option[j]);
+        }
+
+        // Compare the strings
+        if (!strncmp(input, option, bufferLength)) {
+            return i+1;
+        }
+    }
+
+    // Repeat Menu until Valid Input
+    displaySystemMessage("Please insert a correct input...\n\nWaiting For 5 Seconds.", 5);
+    return displayMenu(header, options, noOptions);
+}
+
+/* This function display your data in a table form.
+
+struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
+        
+    displayTabulatedData(d_appointments);
+    freeMalloc2D(d_appointments);*/
+void displayTabulatedData(struct dataContainer2D data) {
+    const int minPadding = 5;
+    int numRow = data.y + 1;
+    char** displayedStrings = malloc (numRow * sizeof(char*));
+
+    // Find Max Column Lengths
+    int columnLengths[data.x];
+
+    for (int i=0; i<data.x; i++) {
+        int columnLength = strlen(data.fields[i]);
+
+        for (int j=0; j<data.y; j++) {
+            int currentLength = strlen(data.data[j][i]);
+
+            if (currentLength > columnLength) {
+                columnLength = currentLength;
+            }
+        }
+
+        columnLengths[i] = columnLength;
+    }
+
+    int bufferLength = 500;
+    char stringBuffer[bufferLength];
+
+    // Clear String;
+    stringBuffer[0] = '\0';
+
+    // Format the Field Strings
+    for (int i=0; i<data.x; i++) {
+        int totalPadding = columnLengths[i] - strlen(data.fields[i]) + minPadding;
+
+        int leftPadding = floor(totalPadding/2);
+        
+        for (int n=0; n<leftPadding; n++) {
+            strncat(stringBuffer, " ", 2);
+        } 
+
+        strncat(stringBuffer, data.fields[i], strlen(data.fields[i]));
+
+        int rightPadding = totalPadding - leftPadding;
+
+        for (int n=0; n<rightPadding; n++) {
+            strncat(stringBuffer, " ", 2);
+        } 
+
+        strncat(stringBuffer, "|", 2);
+    }
+
+    displayedStrings[0] = strdup(stringBuffer);
+
+    // Format the Strings
+
+    for (int i=0; i<data.y; i++) {
+        stringBuffer[0] = '\0';
+
+        // Create String
+        for (int j=0; j<data.x; j++) {
+            int totalPadding = columnLengths[j] - strlen(data.data[i][j]) + minPadding;
+
+            // Left Padding
+            int leftPadding = floor(totalPadding/2);
+            
+            for (int n=0; n<leftPadding; n++) {
+                strncat(stringBuffer, " ", 2);
+            } 
+
+            strncat(stringBuffer, data.data[i][j], strlen(data.data[i][j]));
+
+            // Right Padding
+            int rightPadding = totalPadding - leftPadding;
+
+            for (int n=0; n<rightPadding; n++) {
+                strncat(stringBuffer, " ", 2);
+            } 
+
+            strncat(stringBuffer, "|", 2);
+        }
+
+        // Add String to Array
+        displayedStrings[i+1] = strdup(stringBuffer);
+    }
+
+    int tableLength = strlen(displayedStrings[0]) + 1;
+
+    for (int i=0; i<tableLength; i++) {
+        printf("-");
+    }
+
+    for (int i=0; i<numRow; i++) {
+        printf("\n|%s\n", displayedStrings[i]);
+        
+        for (int i=0; i<tableLength; i++) {
+            printf("-");
+        }
+    }
+
+    printf("\n");
+
+    free(displayedStrings);
 }
 
 ///////////////////////////////////*DATA READ FUNCTIONS*////////////////////////////////////////////////
@@ -1096,11 +1094,6 @@ int writeData(const char* filename, struct dataContainer2D array)
 */
 int write_new_data(const char* filename, int numInputs, char* inputs[]) 
 {
-    
-    /*Things to add in this Function:
-    - Validate numInputs with field numbers
-    */
-    
     // Make a copy of the input array to avoid modifying the original data
     char* inputs_copy[numInputs];
     for (int i = 0; i < numInputs; ++i) 
