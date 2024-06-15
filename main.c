@@ -1668,16 +1668,19 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
 
 }
 
-void search_case_name() {
+void search_case_name() 
+{
     struct dataContainer2D report;
 
-    while (1) {
+    while (1) 
+    {
         char* caseName = getString("Enter Case Name: ");
 
 
         report = queryFieldStrict("Reports", "CaseName", caseName);
 
-        if (report.error) {
+        if (report.error) 
+        {
             clearTerminal();
             displaySystemMessage("Case Not Found!", 2);
             continue;
@@ -1773,13 +1776,10 @@ void EHR_access(char* doctor_username)
 
         if (d_output == 1)
         {
-            //patient access
             DoctorEHRMenu();
         }
         else if (d_output == 2)
         {   
-            /*Search Case*/
-            clearTerminal();
             search_case_name();
         }
         else if (d_output == 3)
