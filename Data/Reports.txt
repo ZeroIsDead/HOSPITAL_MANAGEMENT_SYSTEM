@@ -11,3 +11,4 @@ rapt009;Fractured Arm;Cast applied, scheduled follow-up X-ray.;
 rapt010;Bronchitis;Prescribed antibiotics, advised rest and hydration.;
 rapt011;Skin Rash;Topical cream prescribed, monitor for changes.;
 rapt012;Ear Infection;Prescribed antibiotics, scheduled follow-up in 1 week.;
+rapt013;Flu;Assigned Panadol and anti-biotics;
