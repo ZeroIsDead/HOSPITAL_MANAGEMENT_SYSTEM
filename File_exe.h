@@ -251,16 +251,15 @@ struct dataContainer2D concatDataContainer(struct dataContainer2D data1, struct 
 
         returnedValue.data[i] = malloc(returnedValue.x * sizeof(char*));
 
+        for (int k=0; k<data1.x; k++) {
+            returnedValue.data[i][k] = strdup(data1.data[i][k]);
+        }
+
+        for (int k=data1.x; k<returnedValue.x; k++) {
+            returnedValue.data[i][k] = "-";
+        }
+
         for (int j=0; j<data2.y; j++) {
-            
-            for (int k=0; k<data1.x; k++) {
-                returnedValue.data[i][k] = strdup(data1.data[i][k]);
-            }
-
-            for (int k=data1.x; k<returnedValue.x; k++) {
-                returnedValue.data[i][k] = "-";
-            }
-
             if (!strncmp(data1.data[i][wantedFieldIndex1], data2.data[j][wantedFieldIndex2], 256)) {
                 int count = 0;
                 for (int k=0; k<data2.x; k++) {
@@ -269,7 +268,7 @@ struct dataContainer2D concatDataContainer(struct dataContainer2D data1, struct 
                         continue;
                     }
 
-                    returnedValue.data[i][ count + data1.x ] = strdup(data2.data[i][k]);
+                    returnedValue.data[i][ count + data1.x ] = strdup(data2.data[j][k]);
                     count++;
                 }
                 break;
