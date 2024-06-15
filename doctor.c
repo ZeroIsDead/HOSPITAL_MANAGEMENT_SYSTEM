@@ -913,15 +913,15 @@ void Write_New_Report()
         {
             displaySystemMessage("Appointment ID does not exist ! ", 2);
         }
-        else if (appointments.data[7] == "-")
+        else if (strncmp(appointments.data[7], "-", 1) == 0)
+        {
+            valid = 1;
+        }
+        else
         {
             char appointmentexist[256];
             sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
             displaySystemMessage(appointmentexist, 2);
-        }
-        else
-        {
-            valid = 1;
         }
 
     } while (!valid);
