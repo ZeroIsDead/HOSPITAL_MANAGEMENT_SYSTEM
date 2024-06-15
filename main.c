@@ -1367,7 +1367,7 @@ void Write_New_Report()
         {
             displaySystemMessage("Appointment ID does not exist ! ", 2);
         }
-        else if (appointments.data[7] == "-")
+        else if (strncmp(appointments.data[7], "-", 1) != 0)
         {
             char appointmentexist[256];
             sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
@@ -1871,6 +1871,67 @@ void create_appointment(char* doctor_username)
     freeMalloc2D(chosen_day);
 }
 
+void delete_appointment(char* doctor_username)
+{   
+    struct dataContainer2D allappointments;
+    struct dataContainer2D appointments;
+    char* appointmentID;
+    int valid = 0;
+
+    allappointments = queryFieldStrict("Appointments", "StaffUserID", doctor_username);
+
+    do 
+    {   
+        clearTerminal();
+        appointmentID = getString("Enter appointment ID for your report: ");
+        appointments = filterDataContainer(allappointments, "AppointmentID", appointmentID);  
+
+        if (appointments.error == 1)
+        {
+            displaySystemMessage("Appointment ID does not exist ! ", 2);
+        }
+        else if (strncmp(appointments.data[0][7], "-", 1) != 0)
+        {
+            displaySystemMessage("Unable to Delete Past Appointments", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    } while (!valid);
+
+
+    clearTerminal();
+    displayTabulatedData(appointments);
+    printf("\nDo you sure to remove this appointment?( y for yes / Press anykey to return)\n");
+    char* input = getString("Your input: ");
+
+    if (strcmp(input, "y") == 0 || strcmp(input, "y") == 0)
+    {
+        char* username = getString("Enter your username for comfirmation (Press anykey to return): ");
+
+        if (strcmp(username, doctor_username) == 0)
+        {    
+            deleteKey("Appointments", appointments.data[0][0]);
+        }
+        else
+        {
+            clearTerminal();
+            printf("\n\n");
+            getString("WRONG USERNAME, PRESS ENTER TO RETURN...");
+        }
+    
+    }
+    else
+    {
+        clearTerminal();
+        printf("\n\n");
+        getString("PRESS ENTER TO RETURN...");
+    }
+    
+}
+
 char* Availability(char* doctor_username)
 {
     struct dataContainer2D d_appointments;
@@ -1953,8 +2014,8 @@ void availability_menu(char* doctor_username)
 void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
-    char* d_choices[] = {"All Appointments History", "Search Appointments", "Create Appointment", "Manage Availability", "Back"};
-    int noOptions = 5;
+    char* d_choices[] = {"All Appointments History", "Search Appointments", "Create Appointment", "Delete Appointment", "Manage Availability", "Back"};
+    int noOptions = 6;
 
     while (1)
     {
@@ -1973,11 +2034,15 @@ void my_schedule(char* doctor_username)
         {
             create_appointment(doctor_username);
         }
-        else if (d_output == 4)
+        else if (d_output == 4) 
+        {
+            delete_appointment(doctor_username);
+        }
+        else if (d_output == 5)
         {
             availability_menu(doctor_username); 
         }
-        else if (d_output == 5)
+        else if (d_output == 6)
         {
             return;
         }
@@ -3856,6 +3921,7 @@ int patientMainMenu() {
         } else if (result == 3) {
             billsMenu(username);
         } else if (result == 4) {
+            displaySystemMessage("Logging Out", 3);
             return 0;
         }
     }
