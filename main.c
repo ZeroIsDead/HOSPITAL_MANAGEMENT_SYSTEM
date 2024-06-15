@@ -1027,13 +1027,178 @@ char* get_new_time()
     return new_time_ptr;
 }
 
-void DoctorEHRMenu() 
+void createBill(char* appointmentID) {
+    struct dataContainer2D appointment = queryFieldStrict("Appointments", "AppointmentID", appointmentID);
+    struct dataContainer1D bills = queryField("Bills", "BillsID");
+
+    char IDBuffer[255];
+    char* previous_billID = strdup(bills.data[bills.x-1]);
+    int prev_count = atoi(previous_billID+3);
+    sprintf(IDBuffer, "bil%03d", prev_count+1);
+
+    char* new_ID = strdup(IDBuffer);
+    freeMalloc1D(bills);
+
+    const float FIXED_APPOINTMENT_CHARGE = 10;
+    float charge = FIXED_APPOINTMENT_CHARGE;
+
+    struct dataContainer2D prescription = queryFieldStrict("prescription", "PrescriptionID", appointment.data[0][6]);
+
+    if (!prescription.error) {
+        for (int i=0; i<prescription.y; i++) {
+            struct dataContainer1D medicine = queryKey("Inventory", prescription.data[i][1]);
+            float Price = atof(medicine.data[2]) * atof(prescription.data[i][2]); // Price Per Unit * Unit
+            charge += Price; 
+            freeMalloc1D(medicine);
+        }
+    }
+
+    char stringBuffer[255];
+    sprintf(stringBuffer, "%.2f", charge);
+
+    char* newData[3] = {new_ID, appointmentID, strdup(stringBuffer)};
+    write_new_data("Bills", 3, newData);
+
+    freeMalloc2D(appointment);
+    freeMalloc2D(prescription);
+}
+
+void createPrescription(char* PatientID, char* doctorID) {
+    char* appointmentID = "-";
+
+    struct dataContainer2D appointment;
+    struct dataContainer2D patientAppointments = queryFieldStrict("Appointments", "PatientUserID", PatientID);
+    struct dataContainer2D patientAppointmentsWithDoctor = filterDataContainer(patientAppointments, "StaffUserID", doctorID);
+    freeMalloc2D(patientAppointments);
+
+    do {
+        clearTerminal();
+        appointmentID = getString("Enter AppointmentID: ");
+
+        appointment = filterDataContainer(patientAppointmentsWithDoctor, "AppointmentID", appointmentID);
+
+        if (appointment.error) {
+            displaySystemMessage("Appointment Not Found!", 2);
+            continue;
+        }
+
+        if (strncmp(appointment.data[0][6], "-", 1) == 0) {
+            freeMalloc2D(patientAppointmentsWithDoctor);
+            break;
+        }     
+
+        displaySystemMessage("Appointment Already Has A Prescription!", 2);
+    } while (1);
+
+
+    struct dataContainer1D Prescription = queryField("prescription", "PrescriptionID");
+
+    char IDBuffer[255];
+    char* previous_prescriptionID = strdup(Prescription.data[Prescription.x-1]);
+    int prev_count = atoi(previous_prescriptionID+4);
+    sprintf(IDBuffer, "pres%03d", prev_count+1);
+
+    char* new_ID = strdup(IDBuffer);
+
+    char* input = "-";
+
+    do {
+        clearTerminal();
+        char* name = getString("Enter Medicine Name: ");
+
+        struct dataContainer2D medicine = queryFieldStrict("Inventory", "Medicine Name", name);
+
+        if (medicine.error) {
+            displaySystemMessage("Medicine Not Found!", 2);
+            continue;
+        }
+
+        char quantityPrompt[255];
+        sprintf(quantityPrompt, "Enter Quantity (0-%d): ", atoi(medicine.data[0][4]));
+
+        int quantity = getInt(quantityPrompt);
+
+        if (0 > quantity || quantity > atoi(medicine.data[0][4])) {
+            freeMalloc2D(medicine);
+            displaySystemMessage("Invalid Quantity!", 2);
+            continue;
+        }
+
+        char* confirmation = getString("Confirm (Y|N): ");
+
+        if (tolower(confirmation[0]) != 'y') {
+            continue;
+        }
+
+        char quantityStringBuffer[255];
+        sprintf(quantityStringBuffer, "%d", quantity);
+
+
+
+        char* appendedData[3] = {new_ID, medicine.data[0][0], strdup(quantityStringBuffer)};
+        write_new_data("prescription", 3, appendedData);
+
+        char stringBuffer[255];
+        sprintf(stringBuffer, "%d", atoi(medicine.data[0][4])-quantity);
+
+        medicine.data[0][4] = strdup(stringBuffer);
+        updateData("Inventory", medicine.data[0]);
+
+        input = getString("Continue To Add Medicine (Y|N): ");
+        freeMalloc2D(medicine);
+    } while (tolower(input[0]) == 'y');
+
+    appointment.data[0][6] = strdup(new_ID);
+    updateData("Appointments", appointment.data[0]);
+
+    displaySystemMessage("Prescription Added!", 2);
+    freeMalloc2D(appointment);
+    createBill(appointmentID);
+}
+
+void addAllergies(char* patientID) {
+    do {
+        clearTerminal();
+        char* Allergen = getString("Enter Allergen: ");
+        char* confirmation = getString("Confirm (Y|N): ");
+
+        if (tolower(confirmation[0]) != 'y') {
+            continue;
+        }
+
+        char* newData[2] = {patientID, Allergen};
+        write_new_data("allergies", 2, newData);
+
+        displaySystemMessage("New Allergen Added!", 2);
+        return;
+    } while (1);
+}
+
+void addPastProcedures(char* patientID) {
+    do {
+        clearTerminal();
+        char* procedureName = getString("Enter Procedure Name: ");
+        char* confirmation = getString("Confirm (Y|N): ");
+
+        if (tolower(confirmation[0]) != 'y') {
+            continue;
+        }
+
+        char* newData[2] = {patientID, procedureName};
+        write_new_data("pastProcedures", 2, newData);
+
+        displaySystemMessage("Past Procedure Added!", 2);
+        return;
+    } while (1);
+}
+
+void DoctorEHRMenu(char* doctorID) 
 {   
     char* userID = getUserID();
 
     char* header = "Electronic Health Records";
-    char* options[] = {"View Allergies", "View Past Procedures", "View Prescriptions", "Back"};
-    int noOptions = 4;
+    char* options[] = {"View Allergies", "Add Allergies", "View Past Procedures", "Add Past Procedures", "View Prescriptions", "Add Prescriptions", "Back"};
+    int noOptions = 7;
 
     while (1) 
     {
@@ -1043,9 +1208,15 @@ void DoctorEHRMenu()
         if (result == 1) {
             displayAllergies(userID);
         } else if (result == 2) {
-            displayPastProcedures(userID);
+            addAllergies(userID);
         } else if (result == 3) {
+            displayPastProcedures(userID);
+        } else if (result == 4) {
+            addPastProcedures(userID);
+        } else if (result == 5) {
             prescriptionMenu(userID);
+        } else if (result == 6) {
+            createPrescription(userID, doctorID);
         } else {
             return;
         }
@@ -1490,7 +1661,7 @@ void My_reports_menu(char* doctor_username)
     {
         doctor_Case_Overview(doctor_username);
     } 
-    else 
+    else
     {
         return;
     }
@@ -1776,7 +1947,7 @@ void EHR_access(char* doctor_username)
 
         if (d_output == 1)
         {
-            DoctorEHRMenu();
+            DoctorEHRMenu(doctor_username);
         }
         else if (d_output == 2)
         {   
@@ -2237,7 +2408,6 @@ void NurseBack(){
     
     }
 }
-
 
 char* NurseInventoryId(){
     struct dataContainer2D dataN = getData("Inventory");
