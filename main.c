@@ -1707,6 +1707,7 @@ void create_appointment(char* doctor_username)
             printf("You havent created any schedule for that day.\n");
             printf("Go to <My Availability> and create a new schedule.\n");
             getString("\nRETURNING...");
+            return;
         }
         else
         {
