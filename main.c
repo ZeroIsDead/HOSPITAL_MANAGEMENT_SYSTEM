@@ -1799,7 +1799,7 @@ void allappointments(char* doctor_username)
     struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
     
     clearTerminal();
-    displayTabulatedData1(d_appointments);
+    displayTabulatedData(d_appointments);
 
     printf("\n\n");
     getString("PRESS ENTER TO RETURN...");
@@ -1822,7 +1822,6 @@ void search_Appointments(char* doctor_username)
         clearTerminal();
         search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
         d_appointments = filterDataContainer(appointments, "Date", search_date);
-        printf(doctor_username);
         if (d_appointments.error == 1)
         {
             displaySystemMessage("No appointment for that day!", 2);
@@ -1834,7 +1833,7 @@ void search_Appointments(char* doctor_username)
 
     }while(!valid);
 
-    displayTabulatedData(appointments);
+    displayTabulatedData1(appointments);
 
     printf("\n");
     getString("PRESS ENTER TO RETURN...");
