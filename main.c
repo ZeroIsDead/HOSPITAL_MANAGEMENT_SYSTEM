@@ -2450,8 +2450,7 @@ void NAvailableDoctor(char* NurseName){
         if (count == 4){
             displaySystemMessage("All time slots books, Please pick another date....",5);
             freeMalloc2D(bookedAppointements);
-            main();
-            
+            NurseMenue(NurseName);
         }
         else{
             clearTerminal();
