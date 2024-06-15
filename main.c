@@ -123,12 +123,6 @@ void displayAppointments(char* userID) {
         return;
     }
 
-    if (!appointments.y) {
-        freeMalloc2D(appointments);
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
     clearTerminal();
     displayTabulatedData(appointments);
 
@@ -141,12 +135,6 @@ void rescheduleAppointmentsMenu(char* userID) {
     struct dataContainer2D appointments = getActiveAppointments(userID);
 
     if (appointments.error) {
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
-    if (!appointments.y) {
-        freeMalloc2D(appointments);
         displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
@@ -294,12 +282,6 @@ void cancelAppointmentsMenu(char* userID) {
         struct dataContainer2D appointments = getActiveAppointments(userID);
 
         if (appointments.error) {
-            displaySystemMessage("You Have Not Made Any Appointments", 3);
-            return;
-        }
-
-        if (!appointments.y) {
-            freeMalloc2D(appointments);
             displaySystemMessage("You Have Not Made Any Appointments", 3);
             return;
         }
@@ -533,7 +515,6 @@ void prescriptionMenu(char* userID) {
 }
 
 void displayAppointmentHistory(char* userID) {
-     // AppointmentID;StaffUserID;PatientUserID;RoomNo;TimeSlots;ReportID;
     struct dataContainer2D appointments = getAppointmentHistory(userID);
 
     if (appointments.error) {
@@ -577,45 +558,77 @@ void EHRMenu(char* userID) {
 }
 
 void displayBills(char* userID) {
-    struct dataContainer2D bills = queryFieldStrict("Bills", "PatientUserID", userID);
+    struct dataContainer2D appointmentHistory = getAppointmentHistory(userID);
 
-    if (bills.error) {
-        displaySystemMessage("Unable to Access Bills...", 3);
-        return;
-    }
-
-    if (!bills.y) {
+    if (appointmentHistory.error) {
         displaySystemMessage("You Have No Bills", 3);
         return;
     }
 
+    struct dataContainer2D bills = getData("Bills");
+    struct dataContainer2D userBills = concatDataContainer(appointmentHistory, bills, "AppointmentID", "AppointmentID");
+    struct dataContainer2D displayedBillInfo = shortenDataContainer(userBills, bills.fields, bills.x);
+
+    if (displayedBillInfo.error) {
+        displaySystemMessage("You Have No Bills", 3);
+        freeMalloc2D(appointmentHistory);
+        freeMalloc2D(userBills);
+        freeMalloc2D(bills);
+        return;
+    }
+
     clearTerminal();
-    displayTabulatedData(bills);
+    displayTabulatedData(displayedBillInfo);
 
     getString("PRESS ENTER TO RETURN");
+    freeMalloc2D(appointmentHistory);
+    freeMalloc2D(userBills);
     freeMalloc2D(bills);
+    freeMalloc2D(displayedBillInfo);
 }
 
 void searchBills(char* userID) {
-    char* billID = getString("Enter Bill ID: ");
+    struct dataContainer2D appointmentHistory = getAppointmentHistory(userID);
 
-    struct dataContainer2D bills = queryFieldStrict("Bills", "BillsID", billID);
-
-    if (bills.error) {
-        displaySystemMessage("Bills Not Found", 3);
+    if (appointmentHistory.error) {
+        displaySystemMessage("You Have No Bills", 3);
         return;
     }
 
-    if (!bills.y) {
+    struct dataContainer2D bills = getData("Bills");
+    struct dataContainer2D userBills = concatDataContainer(appointmentHistory, bills, "AppointmentID", "AppointmentID");
+    struct dataContainer2D displayedBillInfo = shortenDataContainer(userBills, bills.fields, bills.x);
+
+    char* ID = getString("Enter Bill ID or AppointmentID: ");
+
+    struct dataContainer2D billSearchedByBillID = filterDataContainer(displayedBillInfo, "BillsID", ID);
+    struct dataContainer2D billSearchedByAptID = filterDataContainer(displayedBillInfo, "AppointmentID", ID);
+
+
+    if (billSearchedByBillID.error && billSearchedByAptID.error) {
         displaySystemMessage("Bills Not Found", 3);
+        freeMalloc2D(appointmentHistory);
+        freeMalloc2D(userBills);
+        freeMalloc2D(bills);
+        freeMalloc2D(displayedBillInfo);
         return;
     }
 
     clearTerminal();
-    displayTabulatedData(bills);
+
+    if (!billSearchedByBillID.error) {
+        displayTabulatedData(billSearchedByBillID);
+        freeMalloc2D(billSearchedByBillID);
+    } else if (!billSearchedByAptID.error) {
+        displayTabulatedData(billSearchedByAptID);
+        freeMalloc2D(billSearchedByAptID);
+    }
 
     getString("PRESS ENTER TO RETURN");
+    freeMalloc2D(appointmentHistory);
+    freeMalloc2D(userBills);
     freeMalloc2D(bills);
+    freeMalloc2D(displayedBillInfo);
 }
 
 void billsMenu(char* userID) {
@@ -642,12 +655,6 @@ int loginPatient(char username[], char password[]) {
 
     if (userData.error) {
         displaySystemMessage("Username not Found", 2);
-        return 1;
-    }
-
-    if (!userData.y) {
-        displaySystemMessage("Username not Found", 2);
-        freeMalloc2D(userData);
         return 1;
     }
 

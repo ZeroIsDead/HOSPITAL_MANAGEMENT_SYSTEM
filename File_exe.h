@@ -392,18 +392,20 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
 
     int wantedFieldIndexes[numFields];
 
-    int count = 0;
-    for (int i=0; i < data.x && count < numFields; i++) {
-        if (!strncmp(data.fields[i], wantedFields[count], 256)) {
-            wantedFieldIndexes[count++] = i;
+    for (int i=0; i < numFields; i++) {
+        int valid = 0;
+        for (int j=0; j<data.x; j++) {
+            if (!strncmp(data.fields[j], wantedFields[i], 256)) {
+                wantedFieldIndexes[i] = j;
+                valid = 1;
+            }
+        }
+
+        if (!valid) {
+            returnedValue.error = 1;
+            return returnedValue;
         }
     }
-
-    if (count != numFields) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
 
     returnedValue.fields = malloc (returnedValue.x * sizeof(char*));
 
@@ -411,7 +413,6 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
         returnedValue.fields[i] = strdup(wantedFields[i]);
     }
     
-
     char*** table = malloc (returnedValue.y * sizeof(char**));
 
     for (int i=0; i < returnedValue.y; i++) {
@@ -426,7 +427,6 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
     returnedValue.data = table;
 
     return returnedValue;
-
 }
 ///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
