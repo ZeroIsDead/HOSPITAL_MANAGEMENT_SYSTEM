@@ -1978,7 +1978,7 @@ void NurseBack(){
 
     int back = 1;
     back = getInt("\nPlease Enter 0 to go back: ");
-
+    clearTerminal();
     if (back != 0 ){
 
         displaySystemMessage("Please enter the corrent input!: ",2);
