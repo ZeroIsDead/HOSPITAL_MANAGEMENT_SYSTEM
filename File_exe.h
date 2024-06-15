@@ -398,13 +398,13 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
             if (!strncmp(data.fields[j], wantedFields[i], 256)) {
                 wantedFieldIndexes[i] = j;
                 valid = 1;
-            }
         }
+    }
 
         if (!valid) {
-            returnedValue.error = 1;
-            return returnedValue;
-        }
+        returnedValue.error = 1;
+        return returnedValue;
+    }
     }
 
     returnedValue.fields = malloc (returnedValue.x * sizeof(char*));
@@ -413,6 +413,7 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
         returnedValue.fields[i] = strdup(wantedFields[i]);
     }
     
+
     char*** table = malloc (returnedValue.y * sizeof(char**));
 
     for (int i=0; i < returnedValue.y; i++) {
@@ -427,6 +428,7 @@ struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* w
     returnedValue.data = table;
 
     return returnedValue;
+
 }
 ///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
