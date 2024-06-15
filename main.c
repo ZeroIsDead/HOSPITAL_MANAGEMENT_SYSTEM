@@ -1920,6 +1920,9 @@ void delete_appointment(char* doctor_username)
         if (strcmp(username, doctor_username) == 0)
         {    
             deleteKey("Appointments", appointments.data[0][0]);
+            char SystemMessage[255];
+            sprintf(SystemMessage, "The Appointment %s Has Been Deleted!", appointmentID);
+            displaySystemMessage(SystemMessage, 2);
         }
         else
         {
@@ -1932,7 +1935,7 @@ void delete_appointment(char* doctor_username)
     else
     {
         clearTerminal();
-        printf("\n\n");
+        printf("\n\n");        
         getString("PRESS ENTER TO RETURN...");
     }
     
