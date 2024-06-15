@@ -1691,6 +1691,7 @@ void create_appointment(char* doctor_username)
     if (all_schedule.error) 
     {
         displaySystemMessage("Error , no records found", 2);
+        return;
     }
 
     //get date
@@ -1707,6 +1708,7 @@ void create_appointment(char* doctor_username)
             printf("You havent created any schedule for that day.\n");
             printf("Go to <My Availability> and create a new schedule.\n");
             getString("\nRETURNING...");
+            freeMalloc2D(all_schedule);
             return;
         }
         else
@@ -1727,6 +1729,9 @@ void create_appointment(char* doctor_username)
     if (all_appointments.error == 1)
     {
          displaySystemMessage("Get data error!",2);
+        freeMalloc2D(all_schedule);
+        freeMalloc2D(chosen_day);
+        return;
     }
     previous_appointmentID = strdup(all_appointments.data[all_appointments.y-1][0]);
     prev_count = atoi(previous_appointmentID+3);
@@ -1743,6 +1748,9 @@ void create_appointment(char* doctor_username)
         clearTerminal();
         printf("You already have an appointment on that day!\n");
         displayTabulatedData(particular_day);
+        freeMalloc2D(d_appointment);
+        freeMalloc2D(particular_day);
+
         char comfirmation = *getString("Confirm to add a new appointment? (y/n): ");
         if (comfirmation == 'y' || comfirmation == 'Y')
         {
@@ -1752,13 +1760,12 @@ void create_appointment(char* doctor_username)
         {
             clearTerminal();
             getString("\nRETURNING... PRESS ENTER TO CONTINUE");
-            freeMalloc2D(d_appointment);
-            freeMalloc2D(particular_day);
             freeMalloc2D(all_schedule);
             freeMalloc2D(chosen_day);
             return;
         }
     }
+
 
     //choose slots
     char* slots_menu = "Choose a slot for new appointment";
@@ -1795,7 +1802,6 @@ void create_appointment(char* doctor_username)
     else if (slot_choice == 5)
     {
         freeMalloc2D(d_appointment);
-        freeMalloc2D(particular_day);
         freeMalloc2D(all_schedule);
         freeMalloc2D(chosen_day);
         return;
@@ -1866,10 +1872,9 @@ void create_appointment(char* doctor_username)
         getString("\n\nPRESS ENTER TO CONTINUE  ");
     }
 
-    freeMalloc2D(d_appointment);
-    freeMalloc2D(particular_day);
     freeMalloc2D(all_schedule);
     freeMalloc2D(chosen_day);
+
 }
 
 void delete_appointment(char* doctor_username)
