@@ -522,11 +522,6 @@ void displayAppointmentHistory(char* userID) {
         return;
     }
 
-    if (!appointments.y || !strncmp(appointments.data[0][7], "-", 2)) {
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
     clearTerminal();
     displayTabulatedData(appointments);
 
@@ -568,14 +563,6 @@ void displayBills(char* userID) {
     struct dataContainer2D bills = getData("Bills");
     struct dataContainer2D userBills = concatDataContainer(appointmentHistory, bills, "AppointmentID", "AppointmentID");
     struct dataContainer2D displayedBillInfo = shortenDataContainer(userBills, bills.fields, bills.x);
-
-    if (displayedBillInfo.error) {
-        displaySystemMessage("You Have No Bills", 3);
-        freeMalloc2D(appointmentHistory);
-        freeMalloc2D(userBills);
-        freeMalloc2D(bills);
-        return;
-    }
 
     clearTerminal();
     displayTabulatedData(displayedBillInfo);
