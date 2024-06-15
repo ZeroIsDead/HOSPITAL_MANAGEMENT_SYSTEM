@@ -1384,12 +1384,97 @@ void Write_New_Report()
     freeMalloc1D(appointments);
 }
 
+void doctor_Case_Overview(char* doctor_username) 
+{
+    struct dataContainer2D doctorReportIDs = queryFieldStrict("Appointments", "StaffUserID", doctor_username);
+
+    if (doctorReportIDs.error) 
+    {
+        displaySystemMessage("You Have No Reports", 3);
+        return;
+    }
+
+    struct dataContainer2D reports = getData("Reports");
+    struct dataContainer2D doctorData = concatDataContainer(doctorReportIDs, reports, "ReportID", "ReportID");
+
+    if (doctorData.error) 
+    {
+        freeMalloc2D(doctorReportIDs);
+        freeMalloc2D(reports);
+        displaySystemMessage("You Have No Reports", 3);
+        return;
+    }
+
+    struct dataContainer2D doctorCases = shortenDataContainer(doctorData, reports.fields, reports.x);
+
+    freeMalloc2D(doctorReportIDs);
+    freeMalloc2D(reports);
+    freeMalloc2D(doctorData);
+
+    struct dataContainer2D displayedData;
+    displayedData.fields = malloc(2 * sizeof(char*));
+    displayedData.fields[0] = "Case Name";
+    displayedData.fields[1] = "Case Count";
+
+    char* caseName[doctorCases.y];
+    int caseCount[doctorCases.y];
+
+    int count = 0;
+
+    for (int i=0; i<doctorCases.y; i++) 
+    {
+        int found = 0;
+        for (int j=0; j<count; j++) 
+        {
+            if (strncmp(doctorCases.data[i][1], caseName[j], 256) == 0) // If case name already found
+            { 
+                caseCount[j]++;
+                found = 1;
+            }
+        }
+
+        if (!found) 
+        {
+            caseName[count] = strdup(doctorCases.data[i][1]);
+            caseCount[count] = 1;
+            count++;
+        }        
+    }
+
+    freeMalloc2D(doctorCases);
+
+    displayedData.data = malloc(count * sizeof(char**));
+
+    for (int i=0; i<count; i++) 
+    {
+        displayedData.data[i] = malloc(2 * sizeof(char*));
+
+        char stringBuffer[256];
+
+        sprintf(stringBuffer, "%d", caseCount[i]);
+
+
+        displayedData.data[i][0] = strdup(caseName[i]);
+        displayedData.data[i][1] = strdup(stringBuffer);
+    }
+
+    displayedData.error = 0;
+    displayedData.x = 2;
+    displayedData.y = count;
+
+    clearTerminal();
+    displayTabulatedData1(displayedData);
+    getString("\nPRESS ENTER TO RETURN...");
+
+    freeMalloc2D(displayedData); 
+}
+
 void My_reports_menu(char* doctor_username)
 {
     clearTerminal();
     char* header = "My Reports";
-    char* options[] = {"View My Reports", "Write New Report", "Back"};
-    int noOptions = 3;
+    char* options[] = {"View My Reports", "Write New Report", "My Case Overview", "Back"};
+    int noOptions = 4;
 
     int result = displayMenu(header, options, noOptions);
 
@@ -1402,6 +1487,10 @@ void My_reports_menu(char* doctor_username)
         Write_New_Report();
     } 
     else if (result == 3) 
+    {
+        doctor_Case_Overview(doctor_username);
+    } 
+    else 
     {
         return;
     }
@@ -1462,7 +1551,7 @@ void delete_entire_day(struct dataContainer2D appointments, char* doctor_usernam
 {   
     clearTerminal();
     displayTabulatedData(appointments);
-    printf("\nDo you sure to remove your entire schdule for this day?( y for yes / Press anykey to return)\n");
+    printf("\nDo you sure to remove your entire schedule for this day?( y for yes / Press anykey to return)\n");
     char* input = getString("Your input: ");
 
     if (strcmp(input, "y") == 0 || strcmp(input, "y") == 0)
@@ -1603,11 +1692,79 @@ void search_case_name() {
     freeMalloc2D(report);
 }
 
+void hospital_Case_Overview() 
+{
+    struct dataContainer2D doctorCases = getData("Reports");
+    
+    if (doctorCases.error) 
+    {
+        displaySystemMessage("No Reports Found", 3);
+        return;
+    }
+
+    struct dataContainer2D displayedData;
+    displayedData.fields = malloc(2 * sizeof(char*));
+    displayedData.fields[0] = "Case Name";
+    displayedData.fields[1] = "Case Count";
+
+    char* caseName[doctorCases.y];
+    int caseCount[doctorCases.y];
+
+    int count = 0;
+
+    for (int i=0; i<doctorCases.y; i++) 
+    {
+        int found = 0;
+        for (int j=0; j<count; j++) 
+        {
+            if (strncmp(doctorCases.data[i][1], caseName[j], 256) == 0) // If case name already found
+            { 
+                caseCount[j]++;
+                found = 1;
+            }
+        }
+
+        if (!found) 
+        {
+            caseName[count] = strdup(doctorCases.data[i][1]);
+            caseCount[count] = 1;
+            count++;
+        }        
+    }
+
+    freeMalloc2D(doctorCases);
+
+    displayedData.data = malloc(count * sizeof(char**));
+
+    for (int i=0; i<count; i++) 
+    {
+        displayedData.data[i] = malloc(2 * sizeof(char*));
+
+        char stringBuffer[256];
+
+        sprintf(stringBuffer, "%d", caseCount[i]);
+
+
+        displayedData.data[i][0] = strdup(caseName[i]);
+        displayedData.data[i][1] = strdup(stringBuffer);
+    }
+
+    displayedData.error = 0;
+    displayedData.x = 2;
+    displayedData.y = count;
+
+    clearTerminal();
+    displayTabulatedData1(displayedData);
+    getString("\nPRESS ENTER TO RETURN...");
+
+    freeMalloc2D(displayedData); 
+}
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
-    char* d_choices[] = {"Search for patient", "Search via Case Name", "Back"};
-    int noOptions = 3;
+    char* d_choices[] = {"Search for patient", "Search via Case Name", "Hospital Case Overview", "Back"};
+    int noOptions = 4;
     
     while (1)
     {
@@ -1626,6 +1783,10 @@ void EHR_access(char* doctor_username)
             search_case_name();
         }
         else if (d_output == 3)
+        {
+            hospital_Case_Overview();
+        } 
+        else 
         {
             return;
         }
@@ -1976,7 +2137,7 @@ char* Availability(char* doctor_username)
     appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
 
     displayTabulatedData(appointments);
-    printf("Do you want to append your schdule for this day? ( y for yes / Press anykey to return) \n");
+    printf("Do you want to append your schedule for this day? ( y for yes / Press anykey to return) \n");
     char* append = getString(" Your input: ");
 
     if (strcmp(append, "y") == 0)
