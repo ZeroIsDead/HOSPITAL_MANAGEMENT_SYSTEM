@@ -1,5 +1,4 @@
 #include "File_exe.h"
-char* NurseName;
 
 void NurseMenue(char* name);
 int main();
@@ -124,12 +123,6 @@ void displayAppointments(char* userID) {
         return;
     }
 
-    if (!appointments.y) {
-        freeMalloc2D(appointments);
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
     clearTerminal();
     displayTabulatedData(appointments);
 
@@ -142,12 +135,6 @@ void rescheduleAppointmentsMenu(char* userID) {
     struct dataContainer2D appointments = getActiveAppointments(userID);
 
     if (appointments.error) {
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
-    if (!appointments.y) {
-        freeMalloc2D(appointments);
         displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
@@ -295,12 +282,6 @@ void cancelAppointmentsMenu(char* userID) {
         struct dataContainer2D appointments = getActiveAppointments(userID);
 
         if (appointments.error) {
-            displaySystemMessage("You Have Not Made Any Appointments", 3);
-            return;
-        }
-
-        if (!appointments.y) {
-            freeMalloc2D(appointments);
             displaySystemMessage("You Have Not Made Any Appointments", 3);
             return;
         }
@@ -534,15 +515,9 @@ void prescriptionMenu(char* userID) {
 }
 
 void displayAppointmentHistory(char* userID) {
-     // AppointmentID;StaffUserID;PatientUserID;RoomNo;TimeSlots;ReportID;
     struct dataContainer2D appointments = getAppointmentHistory(userID);
 
     if (appointments.error) {
-        displaySystemMessage("You Have Not Made Any Appointments", 3);
-        return;
-    }
-
-    if (!appointments.y || !strncmp(appointments.data[0][7], "-", 2)) {
         displaySystemMessage("You Have Not Made Any Appointments", 3);
         return;
     }
@@ -578,45 +553,69 @@ void EHRMenu(char* userID) {
 }
 
 void displayBills(char* userID) {
-    struct dataContainer2D bills = queryFieldStrict("Bills", "PatientUserID", userID);
+    struct dataContainer2D appointmentHistory = getAppointmentHistory(userID);
 
-    if (bills.error) {
-        displaySystemMessage("Unable to Access Bills...", 3);
-        return;
-    }
-
-    if (!bills.y) {
+    if (appointmentHistory.error) {
         displaySystemMessage("You Have No Bills", 3);
         return;
     }
 
+    struct dataContainer2D bills = getData("Bills");
+    struct dataContainer2D userBills = concatDataContainer(appointmentHistory, bills, "AppointmentID", "AppointmentID");
+    struct dataContainer2D displayedBillInfo = shortenDataContainer(userBills, bills.fields, bills.x);
+
     clearTerminal();
-    displayTabulatedData(bills);
+    displayTabulatedData(displayedBillInfo);
 
     getString("PRESS ENTER TO RETURN");
+    freeMalloc2D(appointmentHistory);
+    freeMalloc2D(userBills);
     freeMalloc2D(bills);
+    freeMalloc2D(displayedBillInfo);
 }
 
 void searchBills(char* userID) {
-    char* billID = getString("Enter Bill ID: ");
+    struct dataContainer2D appointmentHistory = getAppointmentHistory(userID);
 
-    struct dataContainer2D bills = queryFieldStrict("Bills", "BillsID", billID);
-
-    if (bills.error) {
-        displaySystemMessage("Bills Not Found", 3);
+    if (appointmentHistory.error) {
+        displaySystemMessage("You Have No Bills", 3);
         return;
     }
 
-    if (!bills.y) {
+    struct dataContainer2D bills = getData("Bills");
+    struct dataContainer2D userBills = concatDataContainer(appointmentHistory, bills, "AppointmentID", "AppointmentID");
+    struct dataContainer2D displayedBillInfo = shortenDataContainer(userBills, bills.fields, bills.x);
+
+    char* ID = getString("Enter Bill ID or AppointmentID: ");
+
+    struct dataContainer2D billSearchedByBillID = filterDataContainer(displayedBillInfo, "BillsID", ID);
+    struct dataContainer2D billSearchedByAptID = filterDataContainer(displayedBillInfo, "AppointmentID", ID);
+
+
+    if (billSearchedByBillID.error && billSearchedByAptID.error) {
         displaySystemMessage("Bills Not Found", 3);
+        freeMalloc2D(appointmentHistory);
+        freeMalloc2D(userBills);
+        freeMalloc2D(bills);
+        freeMalloc2D(displayedBillInfo);
         return;
     }
 
     clearTerminal();
-    displayTabulatedData(bills);
+
+    if (!billSearchedByBillID.error) {
+        displayTabulatedData(billSearchedByBillID);
+        freeMalloc2D(billSearchedByBillID);
+    } else if (!billSearchedByAptID.error) {
+        displayTabulatedData(billSearchedByAptID);
+        freeMalloc2D(billSearchedByAptID);
+    }
 
     getString("PRESS ENTER TO RETURN");
+    freeMalloc2D(appointmentHistory);
+    freeMalloc2D(userBills);
     freeMalloc2D(bills);
+    freeMalloc2D(displayedBillInfo);
 }
 
 void billsMenu(char* userID) {
@@ -643,12 +642,6 @@ int loginPatient(char username[], char password[]) {
 
     if (userData.error) {
         displaySystemMessage("Username not Found", 2);
-        return 1;
-    }
-
-    if (!userData.y) {
-        displaySystemMessage("Username not Found", 2);
-        freeMalloc2D(userData);
         return 1;
     }
 
@@ -1034,13 +1027,178 @@ char* get_new_time()
     return new_time_ptr;
 }
 
-void DoctorEHRMenu() 
+void createBill(char* appointmentID) {
+    struct dataContainer2D appointment = queryFieldStrict("Appointments", "AppointmentID", appointmentID);
+    struct dataContainer1D bills = queryField("Bills", "BillsID");
+
+    char IDBuffer[255];
+    char* previous_billID = strdup(bills.data[bills.x-1]);
+    int prev_count = atoi(previous_billID+3);
+    sprintf(IDBuffer, "bil%03d", prev_count+1);
+
+    char* new_ID = strdup(IDBuffer);
+    freeMalloc1D(bills);
+
+    const float FIXED_APPOINTMENT_CHARGE = 10;
+    float charge = FIXED_APPOINTMENT_CHARGE;
+
+    struct dataContainer2D prescription = queryFieldStrict("prescription", "PrescriptionID", appointment.data[0][6]);
+
+    if (!prescription.error) {
+        for (int i=0; i<prescription.y; i++) {
+            struct dataContainer1D medicine = queryKey("Inventory", prescription.data[i][1]);
+            float Price = atof(medicine.data[2]) * atof(prescription.data[i][2]); // Price Per Unit * Unit
+            charge += Price; 
+            freeMalloc1D(medicine);
+        }
+    }
+
+    char stringBuffer[255];
+    sprintf(stringBuffer, "%.2f", charge);
+
+    char* newData[3] = {new_ID, appointmentID, strdup(stringBuffer)};
+    write_new_data("Bills", 3, newData);
+
+    freeMalloc2D(appointment);
+    freeMalloc2D(prescription);
+}
+
+void createPrescription(char* PatientID, char* doctorID) {
+    char* appointmentID = "-";
+
+    struct dataContainer2D appointment;
+    struct dataContainer2D patientAppointments = queryFieldStrict("Appointments", "PatientUserID", PatientID);
+    struct dataContainer2D patientAppointmentsWithDoctor = filterDataContainer(patientAppointments, "StaffUserID", doctorID);
+    freeMalloc2D(patientAppointments);
+
+    do {
+        clearTerminal();
+        appointmentID = getString("Enter AppointmentID: ");
+
+        appointment = filterDataContainer(patientAppointmentsWithDoctor, "AppointmentID", appointmentID);
+
+        if (appointment.error) {
+            displaySystemMessage("Appointment Not Found!", 2);
+            continue;
+        }
+
+        if (strncmp(appointment.data[0][6], "-", 1) == 0) {
+            freeMalloc2D(patientAppointmentsWithDoctor);
+            break;
+        }     
+
+        displaySystemMessage("Appointment Already Has A Prescription!", 2);
+    } while (1);
+
+
+    struct dataContainer1D Prescription = queryField("prescription", "PrescriptionID");
+
+    char IDBuffer[255];
+    char* previous_prescriptionID = strdup(Prescription.data[Prescription.x-1]);
+    int prev_count = atoi(previous_prescriptionID+4);
+    sprintf(IDBuffer, "pres%03d", prev_count+1);
+
+    char* new_ID = strdup(IDBuffer);
+
+    char* input = "-";
+
+    do {
+        clearTerminal();
+        char* name = getString("Enter Medicine Name: ");
+
+        struct dataContainer2D medicine = queryFieldStrict("Inventory", "Medicine Name", name);
+
+        if (medicine.error) {
+            displaySystemMessage("Medicine Not Found!", 2);
+            continue;
+        }
+
+        char quantityPrompt[255];
+        sprintf(quantityPrompt, "Enter Quantity (0-%d): ", atoi(medicine.data[0][4]));
+
+        int quantity = getInt(quantityPrompt);
+
+        if (0 > quantity || quantity > atoi(medicine.data[0][4])) {
+            freeMalloc2D(medicine);
+            displaySystemMessage("Invalid Quantity!", 2);
+            continue;
+        }
+
+        char* confirmation = getString("Confirm (Y|N): ");
+
+        if (tolower(confirmation[0]) != 'y') {
+            continue;
+        }
+
+        char quantityStringBuffer[255];
+        sprintf(quantityStringBuffer, "%d", quantity);
+
+
+
+        char* appendedData[3] = {new_ID, medicine.data[0][0], strdup(quantityStringBuffer)};
+        write_new_data("prescription", 3, appendedData);
+
+        char stringBuffer[255];
+        sprintf(stringBuffer, "%d", atoi(medicine.data[0][4])-quantity);
+
+        medicine.data[0][4] = strdup(stringBuffer);
+        updateData("Inventory", medicine.data[0]);
+
+        input = getString("Continue To Add Medicine (Y|N): ");
+        freeMalloc2D(medicine);
+    } while (tolower(input[0]) == 'y');
+
+    appointment.data[0][6] = strdup(new_ID);
+    updateData("Appointments", appointment.data[0]);
+
+    displaySystemMessage("Prescription Added!", 2);
+    freeMalloc2D(appointment);
+    createBill(appointmentID);
+}
+
+void addAllergies(char* patientID) {
+    do {
+        clearTerminal();
+        char* Allergen = getString("Enter Allergen: ");
+        char* confirmation = getString("Confirm (Y|N): ");
+
+        if (tolower(confirmation[0]) != 'y') {
+            continue;
+        }
+
+        char* newData[2] = {patientID, Allergen};
+        write_new_data("allergies", 2, newData);
+
+        displaySystemMessage("New Allergen Added!", 2);
+        return;
+    } while (1);
+}
+
+void addPastProcedures(char* patientID) {
+    do {
+        clearTerminal();
+        char* procedureName = getString("Enter Procedure Name: ");
+        char* confirmation = getString("Confirm (Y|N): ");
+
+        if (tolower(confirmation[0]) != 'y') {
+            continue;
+        }
+
+        char* newData[2] = {patientID, procedureName};
+        write_new_data("pastProcedures", 2, newData);
+
+        displaySystemMessage("Past Procedure Added!", 2);
+        return;
+    } while (1);
+}
+
+void DoctorEHRMenu(char* doctorID) 
 {   
     char* userID = getUserID();
 
     char* header = "Electronic Health Records";
-    char* options[] = {"View Allergies", "View Past Procedures", "View Prescriptions", "Back"};
-    int noOptions = 4;
+    char* options[] = {"View Allergies", "Add Allergies", "View Past Procedures", "Add Past Procedures", "View Prescriptions", "Add Prescriptions", "Back"};
+    int noOptions = 7;
 
     while (1) 
     {
@@ -1050,16 +1208,20 @@ void DoctorEHRMenu()
         if (result == 1) {
             displayAllergies(userID);
         } else if (result == 2) {
-            displayPastProcedures(userID);
+            addAllergies(userID);
         } else if (result == 3) {
+            displayPastProcedures(userID);
+        } else if (result == 4) {
+            addPastProcedures(userID);
+        } else if (result == 5) {
             prescriptionMenu(userID);
+        } else if (result == 6) {
+            createPrescription(userID, doctorID);
         } else {
             return;
         }
     }
 }
-
-/////////////////////////////////////////////////////////////////////////////////
 
 char* gettime(char* d_choices[], int index)
 {
@@ -1376,7 +1538,7 @@ void Write_New_Report()
         {
             displaySystemMessage("Appointment ID does not exist ! ", 2);
         }
-        else if (appointments.data[7] == "-")
+        else if (strncmp(appointments.data[7], "-", 1) != 0)
         {
             char appointmentexist[256];
             sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
@@ -1393,12 +1555,97 @@ void Write_New_Report()
     freeMalloc1D(appointments);
 }
 
+void doctor_Case_Overview(char* doctor_username) 
+{
+    struct dataContainer2D doctorReportIDs = queryFieldStrict("Appointments", "StaffUserID", doctor_username);
+
+    if (doctorReportIDs.error) 
+    {
+        displaySystemMessage("You Have No Reports", 3);
+        return;
+    }
+
+    struct dataContainer2D reports = getData("Reports");
+    struct dataContainer2D doctorData = concatDataContainer(doctorReportIDs, reports, "ReportID", "ReportID");
+
+    if (doctorData.error) 
+    {
+        freeMalloc2D(doctorReportIDs);
+        freeMalloc2D(reports);
+        displaySystemMessage("You Have No Reports", 3);
+        return;
+    }
+
+    struct dataContainer2D doctorCases = shortenDataContainer(doctorData, reports.fields, reports.x);
+
+    freeMalloc2D(doctorReportIDs);
+    freeMalloc2D(reports);
+    freeMalloc2D(doctorData);
+
+    struct dataContainer2D displayedData;
+    displayedData.fields = malloc(2 * sizeof(char*));
+    displayedData.fields[0] = "Case Name";
+    displayedData.fields[1] = "Case Count";
+
+    char* caseName[doctorCases.y];
+    int caseCount[doctorCases.y];
+
+    int count = 0;
+
+    for (int i=0; i<doctorCases.y; i++) 
+    {
+        int found = 0;
+        for (int j=0; j<count; j++) 
+        {
+            if (strncmp(doctorCases.data[i][1], caseName[j], 256) == 0) // If case name already found
+            { 
+                caseCount[j]++;
+                found = 1;
+            }
+        }
+
+        if (!found) 
+        {
+            caseName[count] = strdup(doctorCases.data[i][1]);
+            caseCount[count] = 1;
+            count++;
+        }        
+    }
+
+    freeMalloc2D(doctorCases);
+
+    displayedData.data = malloc(count * sizeof(char**));
+
+    for (int i=0; i<count; i++) 
+    {
+        displayedData.data[i] = malloc(2 * sizeof(char*));
+
+        char stringBuffer[256];
+
+        sprintf(stringBuffer, "%d", caseCount[i]);
+
+
+        displayedData.data[i][0] = strdup(caseName[i]);
+        displayedData.data[i][1] = strdup(stringBuffer);
+    }
+
+    displayedData.error = 0;
+    displayedData.x = 2;
+    displayedData.y = count;
+
+    clearTerminal();
+    displayTabulatedData1(displayedData);
+    getString("\nPRESS ENTER TO RETURN...");
+
+    freeMalloc2D(displayedData); 
+}
+
 void My_reports_menu(char* doctor_username)
 {
     clearTerminal();
     char* header = "My Reports";
-    char* options[] = {"View My Reports", "Write New Report", "Back"};
-    int noOptions = 3;
+    char* options[] = {"View My Reports", "Write New Report", "My Case Overview", "Back"};
+    int noOptions = 4;
 
     int result = displayMenu(header, options, noOptions);
 
@@ -1411,6 +1658,10 @@ void My_reports_menu(char* doctor_username)
         Write_New_Report();
     } 
     else if (result == 3) 
+    {
+        doctor_Case_Overview(doctor_username);
+    } 
+    else
     {
         return;
     }
@@ -1471,7 +1722,7 @@ void delete_entire_day(struct dataContainer2D appointments, char* doctor_usernam
 {   
     clearTerminal();
     displayTabulatedData(appointments);
-    printf("\nDo you sure to remove your entire schdule for this day?( y for yes / Press anykey to return)\n");
+    printf("\nDo you sure to remove your entire schedule for this day?( y for yes / Press anykey to return)\n");
     char* input = getString("Your input: ");
 
     if (strcmp(input, "y") == 0 || strcmp(input, "y") == 0)
@@ -1588,16 +1839,19 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
 
 }
 
-void search_case_name() {
+void search_case_name() 
+{
     struct dataContainer2D report;
 
-    while (1) {
+    while (1) 
+    {
         char* caseName = getString("Enter Case Name: ");
 
 
         report = queryFieldStrict("Reports", "CaseName", caseName);
 
-        if (report.error) {
+        if (report.error) 
+        {
             clearTerminal();
             displaySystemMessage("Case Not Found!", 2);
             continue;
@@ -1612,11 +1866,79 @@ void search_case_name() {
     freeMalloc2D(report);
 }
 
+void hospital_Case_Overview() 
+{
+    struct dataContainer2D doctorCases = getData("Reports");
+    
+    if (doctorCases.error) 
+    {
+        displaySystemMessage("No Reports Found", 3);
+        return;
+    }
+
+    struct dataContainer2D displayedData;
+    displayedData.fields = malloc(2 * sizeof(char*));
+    displayedData.fields[0] = "Case Name";
+    displayedData.fields[1] = "Case Count";
+
+    char* caseName[doctorCases.y];
+    int caseCount[doctorCases.y];
+
+    int count = 0;
+
+    for (int i=0; i<doctorCases.y; i++) 
+    {
+        int found = 0;
+        for (int j=0; j<count; j++) 
+        {
+            if (strncmp(doctorCases.data[i][1], caseName[j], 256) == 0) // If case name already found
+            { 
+                caseCount[j]++;
+                found = 1;
+            }
+        }
+
+        if (!found) 
+        {
+            caseName[count] = strdup(doctorCases.data[i][1]);
+            caseCount[count] = 1;
+            count++;
+        }        
+    }
+
+    freeMalloc2D(doctorCases);
+
+    displayedData.data = malloc(count * sizeof(char**));
+
+    for (int i=0; i<count; i++) 
+    {
+        displayedData.data[i] = malloc(2 * sizeof(char*));
+
+        char stringBuffer[256];
+
+        sprintf(stringBuffer, "%d", caseCount[i]);
+
+
+        displayedData.data[i][0] = strdup(caseName[i]);
+        displayedData.data[i][1] = strdup(stringBuffer);
+    }
+
+    displayedData.error = 0;
+    displayedData.x = 2;
+    displayedData.y = count;
+
+    clearTerminal();
+    displayTabulatedData1(displayedData);
+    getString("\nPRESS ENTER TO RETURN...");
+
+    freeMalloc2D(displayedData); 
+}
+
 void EHR_access(char* doctor_username)
 {
     char* d_menu = "Electronic Health Records";
-    char* d_choices[] = {"Search for patient", "Search via Case Name", "Back"};
-    int noOptions = 3;
+    char* d_choices[] = {"Search for patient", "Search via Case Name", "Hospital Case Overview", "Back"};
+    int noOptions = 4;
     
     while (1)
     {
@@ -1625,16 +1947,17 @@ void EHR_access(char* doctor_username)
 
         if (d_output == 1)
         {
-            //patient access
-            DoctorEHRMenu();
+            DoctorEHRMenu(doctor_username);
         }
         else if (d_output == 2)
         {   
-            /*Search Case*/
-            clearTerminal();
             search_case_name();
         }
         else if (d_output == 3)
+        {
+            hospital_Case_Overview();
+        } 
+        else 
         {
             return;
         }
@@ -1647,7 +1970,7 @@ void allappointments(char* doctor_username)
     struct dataContainer2D d_appointments = queryFieldStrict("Appointments", "StaffUserID",doctor_username);
     
     clearTerminal();
-    displayTabulatedData1(d_appointments);
+    displayTabulatedData(d_appointments);
 
     printf("\n\n");
     getString("PRESS ENTER TO RETURN...");
@@ -1670,7 +1993,6 @@ void search_Appointments(char* doctor_username)
         clearTerminal();
         search_date = getString("Please Enter the Appointment date (yyyy-mm-dd): ");
         d_appointments = filterDataContainer(appointments, "Date", search_date);
-        printf(doctor_username);
         if (d_appointments.error == 1)
         {
             displaySystemMessage("No appointment for that day!", 2);
@@ -1682,7 +2004,7 @@ void search_Appointments(char* doctor_username)
 
     }while(!valid);
 
-    displayTabulatedData(appointments);
+    displayTabulatedData1(appointments);
 
     printf("\n");
     getString("PRESS ENTER TO RETURN...");
@@ -1700,6 +2022,7 @@ void create_appointment(char* doctor_username)
     if (all_schedule.error) 
     {
         displaySystemMessage("Error , no records found", 2);
+        return;
     }
 
     //get date
@@ -1716,6 +2039,8 @@ void create_appointment(char* doctor_username)
             printf("You havent created any schedule for that day.\n");
             printf("Go to <My Availability> and create a new schedule.\n");
             getString("\nRETURNING...");
+            freeMalloc2D(all_schedule);
+            return;
         }
         else
         {
@@ -1735,6 +2060,9 @@ void create_appointment(char* doctor_username)
     if (all_appointments.error == 1)
     {
          displaySystemMessage("Get data error!",2);
+        freeMalloc2D(all_schedule);
+        freeMalloc2D(chosen_day);
+        return;
     }
     previous_appointmentID = strdup(all_appointments.data[all_appointments.y-1][0]);
     prev_count = atoi(previous_appointmentID+3);
@@ -1751,6 +2079,9 @@ void create_appointment(char* doctor_username)
         clearTerminal();
         printf("You already have an appointment on that day!\n");
         displayTabulatedData(particular_day);
+        freeMalloc2D(d_appointment);
+        freeMalloc2D(particular_day);
+
         char comfirmation = *getString("Confirm to add a new appointment? (y/n): ");
         if (comfirmation == 'y' || comfirmation == 'Y')
         {
@@ -1760,13 +2091,12 @@ void create_appointment(char* doctor_username)
         {
             clearTerminal();
             getString("\nRETURNING... PRESS ENTER TO CONTINUE");
-            freeMalloc2D(d_appointment);
-            freeMalloc2D(particular_day);
             freeMalloc2D(all_schedule);
             freeMalloc2D(chosen_day);
             return;
         }
     }
+
 
     //choose slots
     char* slots_menu = "Choose a slot for new appointment";
@@ -1803,7 +2133,6 @@ void create_appointment(char* doctor_username)
     else if (slot_choice == 5)
     {
         freeMalloc2D(d_appointment);
-        freeMalloc2D(particular_day);
         freeMalloc2D(all_schedule);
         freeMalloc2D(chosen_day);
         return;
@@ -1874,10 +2203,73 @@ void create_appointment(char* doctor_username)
         getString("\n\nPRESS ENTER TO CONTINUE  ");
     }
 
-    freeMalloc2D(d_appointment);
-    freeMalloc2D(particular_day);
     freeMalloc2D(all_schedule);
     freeMalloc2D(chosen_day);
+
+}
+
+void delete_appointment(char* doctor_username)
+{   
+    struct dataContainer2D allappointments;
+    struct dataContainer2D appointments;
+    char* appointmentID;
+    int valid = 0;
+
+    allappointments = queryFieldStrict("Appointments", "StaffUserID", doctor_username);
+
+    do 
+    {   
+        clearTerminal();
+        appointmentID = getString("Enter appointment ID for your report: ");
+        appointments = filterDataContainer(allappointments, "AppointmentID", appointmentID);  
+
+        if (appointments.error == 1)
+        {
+            displaySystemMessage("Appointment ID does not exist ! ", 2);
+        }
+        else if (strncmp(appointments.data[0][7], "-", 1) != 0)
+        {
+            displaySystemMessage("Unable to Delete Past Appointments", 2);
+        }
+        else
+        {
+            valid = 1;
+        }
+
+    } while (!valid);
+
+
+    clearTerminal();
+    displayTabulatedData(appointments);
+    printf("\nDo you sure to remove this appointment?( y for yes / Press anykey to return)\n");
+    char* input = getString("Your input: ");
+
+    if (strcmp(input, "y") == 0 || strcmp(input, "y") == 0)
+    {
+        char* username = getString("Enter your username for comfirmation (Press anykey to return): ");
+
+        if (strcmp(username, doctor_username) == 0)
+        {    
+            deleteKey("Appointments", appointments.data[0][0]);
+            char SystemMessage[255];
+            sprintf(SystemMessage, "The Appointment %s Has Been Deleted!", appointmentID);
+            displaySystemMessage(SystemMessage, 2);
+        }
+        else
+        {
+            clearTerminal();
+            printf("\n\n");
+            getString("WRONG USERNAME, PRESS ENTER TO RETURN...");
+        }
+    
+    }
+    else
+    {
+        clearTerminal();
+        printf("\n\n");        
+        getString("PRESS ENTER TO RETURN...");
+    }
+    
 }
 
 char* Availability(char* doctor_username)
@@ -1915,7 +2307,7 @@ char* Availability(char* doctor_username)
     appointments = filterDataContainer(d_appointments, "DoctorID", doctor_username);
 
     displayTabulatedData(appointments);
-    printf("Do you want to append your schdule for this day? ( y for yes / Press anykey to return) \n");
+    printf("Do you want to append your schedule for this day? ( y for yes / Press anykey to return) \n");
     char* append = getString(" Your input: ");
 
     if (strcmp(append, "y") == 0)
@@ -1962,8 +2354,8 @@ void availability_menu(char* doctor_username)
 void my_schedule(char* doctor_username) 
 {
     char* d_menu = "My Schedule";
-    char* d_choices[] = {"All Appointments History", "Search Appointments", "Create Appointment", "Manage Availability", "Back"};
-    int noOptions = 5;
+    char* d_choices[] = {"All Appointments History", "Search Appointments", "Create Appointment", "Delete Appointment", "Manage Availability", "Back"};
+    int noOptions = 6;
 
     while (1)
     {
@@ -1982,11 +2374,15 @@ void my_schedule(char* doctor_username)
         {
             create_appointment(doctor_username);
         }
-        else if (d_output == 4)
+        else if (d_output == 4) 
+        {
+            delete_appointment(doctor_username);
+        }
+        else if (d_output == 5)
         {
             availability_menu(doctor_username); 
         }
-        else if (d_output == 5)
+        else if (d_output == 6)
         {
             return;
         }
@@ -1998,7 +2394,7 @@ void NurseBack(){
 
     int back = 1;
     back = getInt("\nPlease Enter 0 to go back: ");
-
+    clearTerminal();
     if (back != 0 ){
 
         displaySystemMessage("Please enter the corrent input!: ",2);
@@ -2012,7 +2408,6 @@ void NurseBack(){
     
     }
 }
-
 
 char* NurseInventoryId(){
     struct dataContainer2D dataN = getData("Inventory");
@@ -2099,7 +2494,7 @@ char* NurseLogin(){
     
 }
 
-void NCurrentDoctorSchedules(){
+void NCurrentDoctorSchedules(char* NurseName){
     
     // Display + input of Doctor Schedule Menu
     char* option[] = {"All Doctor Schedule", "Specific Doctor Schedule", "Back"};
@@ -2117,7 +2512,7 @@ void NCurrentDoctorSchedules(){
         
         NurseBack();
         clearTerminal();
-        NCurrentDoctorSchedules();
+        NCurrentDoctorSchedules(NurseName);
         freeMalloc2D(allDocSchedule);
         return;
     }
@@ -2140,7 +2535,7 @@ void NCurrentDoctorSchedules(){
         
         NurseBack();
         clearTerminal();
-        NCurrentDoctorSchedules();
+        NCurrentDoctorSchedules(NurseName);
         return;
     }
 
@@ -2153,7 +2548,7 @@ void NCurrentDoctorSchedules(){
     }
 }
 
-void NAvailableDoctor(){
+void NAvailableDoctor(char* NurseName){
     char* doctorName;
     struct dataContainer2D doctorSchedule;
     
@@ -2224,8 +2619,7 @@ void NAvailableDoctor(){
         if (count == 4){
             displaySystemMessage("All time slots books, Please pick another date....",5);
             freeMalloc2D(bookedAppointements);
-            main();
-            
+            NurseMenue(NurseName);
         }
         else{
             clearTerminal();
@@ -2239,7 +2633,7 @@ void NAvailableDoctor(){
 }
 
 //View Current inventory
-void NViewStationInventory(){
+void NViewStationInventory(char* NurseName){
     clearTerminal();
     struct dataContainer2D currentInventory = getData("Inventory");
     displayTabulatedData(currentInventory);
@@ -2393,7 +2787,7 @@ void NUpdateExistingInventory(){
     }
 }
 
-void NUpdateStationInventory(){
+void NUpdateStationInventory(char* NurseName){
     char* InventoryBanner = "Nurse Inventory Management";
     char* options[] = {"Enter New Iteam to Inventory", "Update a Current Inventory","Back"};
     int output = displayMenu(InventoryBanner,options,3);
@@ -2422,7 +2816,7 @@ void NUpdateStationInventory(){
     }
 }
 
-void NViewPatientReport(){
+void NViewPatientReport(char* NurseName){
     
     char* appointmentNumber = getString("Enter Appointment Number: ");
     struct dataContainer1D appointmentData = queryKey("Appointments",appointmentNumber);
@@ -2466,7 +2860,7 @@ int NPatientNumber(struct dataContainer2D array, int num1, int num2){
 
 }
 
-void NViewUnitReport(){
+void NViewUnitReport(char* NurseName){
     
     char* unitHeader = "Unit Report";
     char* unitOptions[] = {"Number of Patient in Ward","Number of Patient in ICU","Number of Patient in Emergency Room", "Back"};
@@ -2496,7 +2890,7 @@ void NViewUnitReport(){
     freeMalloc2D(data);
     NurseBack();
     clearTerminal();
-    NurseMenue(NurseName);
+    NViewUnitReport(NurseName);
     return;
 
 }
@@ -2510,21 +2904,21 @@ void NurseMenue(char* name){
     clearTerminal();
     
     if (output == 1){
-        NCurrentDoctorSchedules();
+        NCurrentDoctorSchedules(name);
         return;
     }else if (output == 2){
-        NAvailableDoctor();
+        NAvailableDoctor(name);
     }else if(output == 3){
-        NViewStationInventory();
+        NViewStationInventory(name);
     }
     else if(output == 4){
-        NUpdateStationInventory();
+        NUpdateStationInventory(name);
     }
     else if (output == 5){
-        NViewPatientReport();
+        NViewPatientReport(name);
     }
     else if (output == 6){
-       NViewUnitReport();
+       NViewUnitReport(name);
     }
     else{
         return;
@@ -3790,7 +4184,7 @@ int doctor()
 }
 
 int NurseMain(){
-    NurseName = NurseLogin();
+    char* NurseName = NurseLogin();
     clearTerminal();
     
     NurseMenue(NurseName);
@@ -3867,6 +4261,7 @@ int patientMainMenu() {
         } else if (result == 3) {
             billsMenu(username);
         } else if (result == 4) {
+            displaySystemMessage("Logging Out", 3);
             return 0;
         }
     }

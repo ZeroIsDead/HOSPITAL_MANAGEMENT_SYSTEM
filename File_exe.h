@@ -173,6 +173,262 @@ float getFloat(char* prompt)
     return -1.0;
 }
 
+/* This function frees the memory allocated for the dataContainer2D struct.
+ * It iterates over each line of data, frees the memory allocated for each element in that line,
+ * and then frees the memory allocated for the line itself. Finally, it frees the memory
+ * allocated for the fields and the data array.
+ */
+void freeMalloc2D(struct dataContainer2D pointer) 
+{
+    for (int i = 0; i < pointer.y; i++) {
+        free(pointer.data[i]);
+    }
+    free(pointer.data);
+    free(pointer.fields);
+}
+
+// Frees the memory allocated for the dataContainer1D struct
+void freeMalloc1D(struct dataContainer1D pointer) 
+{
+    free(pointer.data);
+    free(pointer.fields);
+}
+
+struct dataContainer2D concatDataContainer(struct dataContainer2D data1, struct dataContainer2D data2, char* keyField1, char* keyField2) {
+    struct dataContainer2D returnedValue;
+    returnedValue.error = 0;
+    
+    int wantedFieldIndex1 = -1;
+    int wantedFieldIndex2 = -1;
+
+    for (int i=0; i<data1.x; i++) {
+        if (!strncmp(data1.fields[i], keyField1, 256)) {
+            wantedFieldIndex1 = i;
+            break;
+        }
+    }
+
+    if (wantedFieldIndex1 == -1) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    for (int i=0; i<data2.x; i++) {
+        if (!strncmp(data2.fields[i], keyField2, 256)) {
+            wantedFieldIndex2 = i;
+            break;
+        }
+    }
+
+    if (wantedFieldIndex2 == -1) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    returnedValue.y = data1.y;
+    returnedValue.x = data1.x + data2.x -1;
+
+    returnedValue.fields = malloc(returnedValue.x * sizeof(char*));
+
+    for (int i=0; i<data1.x; i++) {
+        returnedValue.fields[i] = strdup(data1.fields[i]);
+    }
+
+    int count = 0;
+    for (int k=0; k<data2.x; k++) {
+                    
+        if (k == wantedFieldIndex2) {
+            continue;
+        }
+        
+        returnedValue.fields[ count + data1.x ] = strdup(data2.fields[k]);
+        count++;
+    }
+
+    returnedValue.data = malloc(returnedValue.y * sizeof(char**));
+
+    for (int i=0; i<data1.y; i++) {
+
+        returnedValue.data[i] = malloc(returnedValue.x * sizeof(char*));
+
+        for (int k=0; k<data1.x; k++) {
+            returnedValue.data[i][k] = strdup(data1.data[i][k]);
+        }
+
+        for (int k=data1.x; k<returnedValue.x; k++) {
+            returnedValue.data[i][k] = "-";
+        }
+
+        for (int j=0; j<data2.y; j++) {
+            if (!strncmp(data1.data[i][wantedFieldIndex1], data2.data[j][wantedFieldIndex2], 256)) {
+                int count = 0;
+                for (int k=0; k<data2.x; k++) {
+                    
+                    if (k == wantedFieldIndex2) {
+                        continue;
+                    }
+
+                    returnedValue.data[i][ count + data1.x ] = strdup(data2.data[j][k]);
+                    count++;
+                }
+                break;
+            }
+
+        }
+    }
+
+    return returnedValue;
+}
+
+struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* field, char* key) 
+{
+    struct dataContainer2D returnedValue;
+    returnedValue.error = 0;
+    returnedValue.x = data.x;
+
+    int wantedFieldIndex = -1;
+
+    for (int i=0; i<data.x; i++) {
+        if (!strncmp(data.fields[i], field, 256)) {
+            wantedFieldIndex = i;
+            break;
+        }
+    }
+
+    if (wantedFieldIndex == -1) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    int count = 0;
+    char** pointerBuffer[data.y];
+
+    for (int i=0; i<data.y; i++) {
+        if (!strncmp(data.data[i][wantedFieldIndex], key, 256)) {
+            pointerBuffer[count++] = data.data[i];
+        }
+    }
+
+    if (count == 0) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    returnedValue.fields = malloc (data.x * sizeof(char*));
+    
+    for (int i=0; i<data.x; i++) {
+        returnedValue.fields[i] = strdup(data.fields[i]);
+    }
+
+    char*** table = malloc (count * sizeof(char**));
+
+    for (int i=0; i<count; i++) {
+        table[i] = malloc(data.x * sizeof(char*));
+
+        for (int j=0; j<data.x; j++) {
+            table[i][j] = strdup(pointerBuffer[i][j]);
+        }
+    }
+
+    returnedValue.data = table;
+    returnedValue.y = count;
+
+    return returnedValue;
+}
+
+struct dataContainer1D getFieldValues(struct dataContainer2D data, char* field) {
+    struct dataContainer1D returnedValue;
+    returnedValue.error = 0;
+
+    if (data.error) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    int fieldColumn = -1;
+
+    for (int i=0; i<data.x; i++) 
+    {
+        if (!strncmp(data.fields[i], field, 255))
+        {
+            fieldColumn = i;
+            break;
+        }
+    }
+
+    // Fail to find
+    if (fieldColumn == -1) 
+    {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+
+    // Get all Data In the Specified Field Column
+    char** fieldData = malloc (data.y * sizeof(char*));
+
+    for (int i=0; i<data.y; i++) 
+    {
+        fieldData[i] = strdup(data.data[i][fieldColumn]);
+    }
+
+    returnedValue.data = fieldData;
+    returnedValue.x = data.y;
+
+    char** fieldName = malloc (1 * sizeof(char*));
+
+    fieldName[0] = field;
+
+    returnedValue.fields = fieldName;
+
+    return returnedValue;
+}
+
+struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* wantedFields[], int numFields) {
+    struct dataContainer2D returnedValue;
+    returnedValue.error = 0;
+    returnedValue.x = numFields;
+    returnedValue.y = data.y;
+
+    int wantedFieldIndexes[numFields];
+
+    for (int i=0; i < numFields; i++) {
+        int valid = 0;
+        for (int j=0; j<data.x; j++) {
+            if (!strncmp(data.fields[j], wantedFields[i], 256)) {
+                wantedFieldIndexes[i] = j;
+                valid = 1;
+        }
+    }
+
+        if (!valid) {
+        returnedValue.error = 1;
+        return returnedValue;
+    }
+    }
+
+    returnedValue.fields = malloc (returnedValue.x * sizeof(char*));
+
+    for (int i=0; i<numFields; i++) {
+        returnedValue.fields[i] = strdup(wantedFields[i]);
+    }
+    
+
+    char*** table = malloc (returnedValue.y * sizeof(char**));
+
+    for (int i=0; i < returnedValue.y; i++) {
+        
+        table[i] = malloc (returnedValue.x * sizeof(char*));
+
+        for (int j=0; j < returnedValue.x; j++) {
+            table[i][j] = strdup(data.data[i][wantedFieldIndexes[j]]); 
+        }
+    }
+
+    returnedValue.data = table;
+
+    return returnedValue;
+
+}
 ///////////////////////////////////DISPLAY FUNCTION//////////////////////////////////
 
 /*Display a system message on the terminal and wait for a specified duration before clearing the terminal.*/
@@ -420,7 +676,7 @@ int displayMenu(char* header, char* options[], int noOptions) {
     }
 
     // Repeat Menu until Valid Input
-    displaySystemMessage("INSERT THE FUCKING CORRECT INPUT...\n\nWaiting For 5 Seconds.", 5);
+    displaySystemMessage("INSERT THE CORRECT INPUT...\n\nWaiting For 3 Seconds.", 3);
     return displayMenu(header, options, noOptions);
 }
 
@@ -530,263 +786,6 @@ void displayTabulatedData(struct dataContainer2D data) {
     printf("\n");
 
     free(displayedStrings);
-}
-
-
-/* This function frees the memory allocated for the dataContainer2D struct.
- * It iterates over each line of data, frees the memory allocated for each element in that line,
- * and then frees the memory allocated for the line itself. Finally, it frees the memory
- * allocated for the fields and the data array.
- */
-void freeMalloc2D(struct dataContainer2D pointer) 
-{
-    for (int i = 0; i < pointer.y; i++) {
-        free(pointer.data[i]);
-    }
-    free(pointer.data);
-    free(pointer.fields);
-}
-
-// Frees the memory allocated for the dataContainer1D struct
-void freeMalloc1D(struct dataContainer1D pointer) 
-{
-    free(pointer.data);
-    free(pointer.fields);
-}
-
-struct dataContainer2D concatDataContainer(struct dataContainer2D data1, struct dataContainer2D data2, char* keyField1, char* keyField2) {
-    struct dataContainer2D returnedValue;
-    returnedValue.error = 0;
-    
-    int wantedFieldIndex1 = -1;
-    int wantedFieldIndex2 = -1;
-
-    for (int i=0; i<data1.x; i++) {
-        if (!strncmp(data1.fields[i], keyField1, 256)) {
-            wantedFieldIndex1 = i;
-            break;
-        }
-    }
-
-    if (wantedFieldIndex1 == -1) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-    for (int i=0; i<data2.x; i++) {
-        if (!strncmp(data2.fields[i], keyField2, 256)) {
-            wantedFieldIndex2 = i;
-            break;
-        }
-    }
-
-    if (wantedFieldIndex2 == -1) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-    returnedValue.y = data1.y;
-    returnedValue.x = data1.x + data2.x -1;
-
-    returnedValue.fields = malloc(returnedValue.x * sizeof(char*));
-
-    for (int i=0; i<data1.x; i++) {
-        returnedValue.fields[i] = strdup(data1.fields[i]);
-    }
-
-    int count = 0;
-    for (int k=0; k<data2.x; k++) {
-                    
-        if (k == wantedFieldIndex2) {
-            continue;
-        }
-        
-        returnedValue.fields[ count + data1.x ] = strdup(data2.fields[k]);
-        count++;
-    }
-
-    returnedValue.data = malloc(returnedValue.y * sizeof(char**));
-
-    for (int i=0; i<data1.y; i++) {
-
-        returnedValue.data[i] = malloc(returnedValue.x * sizeof(char*));
-
-        for (int j=0; j<data2.y; j++) {
-            
-            for (int k=0; k<data1.x; k++) {
-                returnedValue.data[i][k] = strdup(data1.data[i][k]);
-            }
-
-            for (int k=data1.x; k<returnedValue.x; k++) {
-                returnedValue.data[i][k] = "-";
-            }
-
-            if (!strncmp(data1.data[i][wantedFieldIndex1], data2.data[j][wantedFieldIndex2], 256)) {
-                int count = 0;
-                for (int k=0; k<data2.x; k++) {
-                    
-                    if (k == wantedFieldIndex2) {
-                        continue;
-                    }
-
-                    returnedValue.data[i][ count + data1.x ] = strdup(data2.data[i][k]);
-                    count++;
-                }
-                break;
-            }
-
-        }
-    }
-
-    return returnedValue;
-}
-
-struct dataContainer2D filterDataContainer(struct dataContainer2D data, char* field, char* key) 
-{
-    struct dataContainer2D returnedValue;
-    returnedValue.error = 0;
-    returnedValue.x = data.x;
-
-    int wantedFieldIndex = -1;
-
-    for (int i=0; i<data.x; i++) {
-        if (!strncmp(data.fields[i], field, 256)) {
-            wantedFieldIndex = i;
-            break;
-        }
-    }
-
-    if (wantedFieldIndex == -1) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-    int count = 0;
-    char** pointerBuffer[data.y];
-
-    for (int i=0; i<data.y; i++) {
-        if (!strncmp(data.data[i][wantedFieldIndex], key, 256)) {
-            pointerBuffer[count++] = data.data[i];
-        }
-    }
-
-    if (count == 0) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-    returnedValue.fields = malloc (data.x * sizeof(char*));
-    
-    for (int i=0; i<data.x; i++) {
-        returnedValue.fields[i] = strdup(data.fields[i]);
-    }
-
-    char*** table = malloc (count * sizeof(char**));
-
-    for (int i=0; i<count; i++) {
-        table[i] = malloc(data.x * sizeof(char*));
-
-        for (int j=0; j<data.x; j++) {
-            table[i][j] = strdup(pointerBuffer[i][j]);
-        }
-    }
-
-    returnedValue.data = table;
-    returnedValue.y = count;
-
-    return returnedValue;
-}
-
-struct dataContainer1D getFieldValues(struct dataContainer2D data, char* field) {
-    struct dataContainer1D returnedValue;
-    returnedValue.error = 0;
-
-    if (data.error) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-    int fieldColumn = -1;
-
-    for (int i=0; i<data.x; i++) 
-    {
-        if (!strncmp(data.fields[i], field, 255))
-        {
-            fieldColumn = i;
-            break;
-        }
-    }
-
-    // Fail to find
-    if (fieldColumn == -1) 
-    {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-    // Get all Data In the Specified Field Column
-    char** fieldData = malloc (data.y * sizeof(char*));
-
-    for (int i=0; i<data.y; i++) 
-    {
-        fieldData[i] = strdup(data.data[i][fieldColumn]);
-    }
-
-    returnedValue.data = fieldData;
-    returnedValue.x = data.y;
-
-    char** fieldName = malloc (1 * sizeof(char*));
-
-    fieldName[0] = field;
-
-    returnedValue.fields = fieldName;
-
-    return returnedValue;
-}
-
-struct dataContainer2D shortenDataContainer(struct dataContainer2D data, char* wantedFields[], int numFields) {
-    struct dataContainer2D returnedValue;
-    returnedValue.error = 0;
-    returnedValue.x = numFields;
-    returnedValue.y = data.y;
-
-    int wantedFieldIndexes[numFields];
-
-    int count = 0;
-    for (int i=0; i < data.x && count < numFields; i++) {
-        if (!strncmp(data.fields[i], wantedFields[count], 256)) {
-            wantedFieldIndexes[count++] = i;
-        }
-    }
-
-    if (count != numFields) {
-        returnedValue.error = 1;
-        return returnedValue;
-    }
-
-
-    returnedValue.fields = malloc (returnedValue.x * sizeof(char*));
-
-    for (int i=0; i<numFields; i++) {
-        returnedValue.fields[i] = strdup(wantedFields[i]);
-    }
-    
-
-    char*** table = malloc (returnedValue.y * sizeof(char**));
-
-    for (int i=0; i < returnedValue.y; i++) {
-        
-        table[i] = malloc (returnedValue.x * sizeof(char*));
-
-        for (int j=0; j < returnedValue.x; j++) {
-            table[i][j] = strdup(data.data[i][wantedFieldIndexes[j]]); 
-        }
-    }
-
-    returnedValue.data = table;
-
-    return returnedValue;
-
 }
 
 ///////////////////////////////////*DATA READ FUNCTIONS*////////////////////////////////////////////////
@@ -1096,11 +1095,6 @@ int writeData(const char* filename, struct dataContainer2D array)
 */
 int write_new_data(const char* filename, int numInputs, char* inputs[]) 
 {
-    
-    /*Things to add in this Function:
-    - Validate numInputs with field numbers
-    */
-    
     // Make a copy of the input array to avoid modifying the original data
     char* inputs_copy[numInputs];
     for (int i = 0; i < numInputs; ++i) 

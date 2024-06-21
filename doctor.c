@@ -913,15 +913,15 @@ void Write_New_Report()
         {
             displaySystemMessage("Appointment ID does not exist ! ", 2);
         }
-        else if (appointments.data[7] == "-")
+        else if (strncmp(appointments.data[7], "-", 1) == 0)
+        {
+            valid = 1;
+        }
+        else
         {
             char appointmentexist[256];
             sprintf(appointmentexist, "Appointment %s already has a report!!", appointmentID);
             displaySystemMessage(appointmentexist, 2);
-        }
-        else
-        {
-            valid = 1;
         }
 
     } while (!valid);
@@ -1125,16 +1125,19 @@ void append_slots_menu(struct dataContainer2D appointments, char* doctor_usernam
 
 }
 
-void search_case_name() {
+void search_case_name() 
+{
     struct dataContainer2D report;
 
-    while (1) {
+    while (1) 
+    {
         char* caseName = getString("Enter Case Name: ");
 
 
         report = queryFieldStrict("Reports", "CaseName", caseName);
 
-        if (report.error) {
+        if (report.error) 
+        {
             clearTerminal();
             displaySystemMessage("Case Not Found!", 2);
             continue;
