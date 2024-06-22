@@ -1,5 +1,5 @@
 MedicineID;Medicine Name;Price;Specifications;Quantity;
-med001;Paracetamol;5.99;500mg Tablets;500;
+med001;Paracetamol;5.99;500mg Tablets;900;
 med002;Ibuprofen;7.49;200mg Tablets;150;
 med003;Aspirin;3.99;81mg Tablets;200;
 med004;Amoxicillin;12.99;250mg Capsules;50;
