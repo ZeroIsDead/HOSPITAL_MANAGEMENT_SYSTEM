@@ -4105,12 +4105,14 @@ void AdminMenu()
         return;
     }
     else if (output==4)
+    
     {
         clearTerminal();
         displaySystemMessage("Logging out", 1);
         displaySystemMessage("Logging out.", 1);
         displaySystemMessage("Logging out..", 1);
         displaySystemMessage("Logging out...", 1);
+        StaffPortal();
         return;
     }
     else
